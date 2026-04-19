@@ -129,24 +129,27 @@ class ProfiledRunner:
 
         # ── 0a. Full Asteria query-level lookup (Sine + judger) ───────────────
         if self._asteria_cache is not None:
-            cached_ans, _dbg = self._asteria_cache.lookup(question)
-            timing.asteria_summary = self._asteria_cache.stats_summary()
-            if cached_ans is not None:
-                timing.asteria_query_hit = True
-                timing.discovery_s = 0.0
-                timing.planning_s = 0.0
-                timing.summarization_s = 0.0
-                timing.steps = []
-                timing.total_s = time.perf_counter() - run_start
-                return timing
+            from asteria.integrations.assetops.query_intent_cache import classify_query
+            _tclass, _ = classify_query(question)
+            if _tclass != "VOLATILE":
+                cached_ans, _dbg = self._asteria_cache.lookup(question)
+                timing.asteria_summary = self._asteria_cache.stats_summary()
+                if cached_ans is not None:
+                    timing.asteria_query_hit = True
+                    timing.discovery_s = 0.0
+                    timing.planning_s = 0.0
+                    timing.summarization_s = 0.0
+                    timing.steps = []
+                    timing.total_s = time.perf_counter() - run_start
+                    return timing
 
         # ── 0b. Query-intent cache (before planner) ───────────────────────────
         if self._query_cache is not None:
-            hit, payload = self._query_cache.lookup(question)
+            hit, cached_answer = self._query_cache.lookup(question)
             timing.query_cache_hit = hit
             timing.query_cache_mode = str(self._query_cache.last_event.get("mode", ""))
             timing.query_cache_summary = self._query_cache.summary()
-            if hit and payload is not None:
+            if hit and cached_answer is not None:
                 timing.discovery_s = 0.0
                 timing.planning_s = 0.0
                 timing.summarization_s = 0.0
@@ -279,24 +282,19 @@ class ProfiledRunner:
         else:
             timing.summarization_s = 0.0
         if self._query_cache is not None:
-            self._query_cache.store(
-                question,
-                {
-                    "planned_steps": len(ordered),
-                    "servers": sorted({s.server for s in ordered}),
-                },
-            )
+            from asteria.integrations.assetops.full_asteria_adapter import compose_stored_answer_from_steps
+            answer = compose_stored_answer_from_steps(ordered, context)
+            self._query_cache.store(question, answer)
             timing.query_cache_summary = self._query_cache.summary()
 
         timing.total_s = time.perf_counter() - run_start
 
         if self._asteria_cache is not None:
             from asteria.config import DEFAULT_CONFIG
-            from asteria.integrations.assetops.full_asteria_adapter import (
-                compose_stored_answer_from_steps,
-            )
-
-            if not timing.asteria_query_hit:
+            from asteria.integrations.assetops.full_asteria_adapter import compose_stored_answer_from_steps
+            from asteria.integrations.assetops.query_intent_cache import classify_query as _cq
+            _insert_tclass, _ = _cq(question)
+            if not timing.asteria_query_hit and _insert_tclass != "VOLATILE":
                 body = compose_stored_answer_from_steps(ordered, context)
                 if body.strip():
                     self._asteria_cache.insert(
