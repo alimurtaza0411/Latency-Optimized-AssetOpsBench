@@ -201,3 +201,6 @@ mcp/couchdb/sample_data/bulk_docs.json
 .env
 mcp/servers/tsfm/artifacts/tsfm_models/
 src/tmp/
+
+# Local large exports (GitHub file limit 100MB)
+main.json

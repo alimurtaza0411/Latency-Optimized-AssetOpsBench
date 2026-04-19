@@ -21,7 +21,7 @@ Quick start:
 """
 
 from .config import AsteriaConfig, DEFAULT_CONFIG
-from .integrations.assetops import IoTToolCache, build_cached_call_tool
+from .integrations.assetops import IoTToolCache, QueryIntentCache, build_cached_call_tool
 
 # Optional heavy imports (sentence-transformers/torch/faiss stack).
 # Keep lightweight integrations importable even when those deps are absent.
@@ -52,6 +52,7 @@ __all__ = [
     "AsteriaConfig",
     "DEFAULT_CONFIG",
     "IoTToolCache",
+    "QueryIntentCache",
     "build_cached_call_tool",
 ]
 
