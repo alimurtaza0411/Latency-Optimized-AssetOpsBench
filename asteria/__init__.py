@@ -21,7 +21,7 @@ Quick start:
 """
 
 from .config import AsteriaConfig, DEFAULT_CONFIG
-from .integrations.assetops import IoTToolCache, QueryIntentCache, build_cached_call_tool
+from .integrations.assetops import QueryIntentCache
 
 # Optional heavy imports (sentence-transformers/torch/faiss stack).
 # Keep lightweight integrations importable even when those deps are absent.
@@ -51,9 +51,7 @@ except ModuleNotFoundError:  # pragma: no cover
 __all__ = [
     "AsteriaConfig",
     "DEFAULT_CONFIG",
-    "IoTToolCache",
     "QueryIntentCache",
-    "build_cached_call_tool",
 ]
 
 if _HEAVY_IMPORTS_AVAILABLE:

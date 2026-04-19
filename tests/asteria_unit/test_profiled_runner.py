@@ -1,9 +1,9 @@
 """End-to-end integration tests for timer.ProfiledRunner.
 
 Stubs MCP transport (_list_tools / _call_tool) and the LLM backend so the full
-plan → execute → summarize loop can be exercised without network, CouchDB, or
-model downloads. Verifies both the lightweight IoT/query caches and the full
-Asteria adapter behave correctly under the runner.
+plan -> execute -> summarize loop can be exercised without network, CouchDB, or
+model downloads. Verifies the lightweight query cache and the full Asteria
+query-level cache under the runner.
 """
 
 from __future__ import annotations
@@ -105,46 +105,10 @@ async def test_baseline_runner_executes_plan_without_cache():
     assert timing.steps[0].server == "iot"
     assert timing.steps[0].tool == "assets"
     assert timing.steps[0].success is True
-    assert timing.steps[0].cache_hit is None
-    assert timing.cache_summary is None
     assert timing.query_cache_summary is None
     assert timing.asteria_summary is None
     # Exactly one tool invocation.
     assert call_tool.await_count == 1
-
-
-# ── lightweight IoT cache hit on second run ───────────────────────────────────
-
-
-@pytest.mark.anyio
-async def test_iot_cache_hit_on_repeated_run():
-    """With --cache, second run must hit the IoT cache and skip the MCP call."""
-    from asteria.integrations.assetops import IoTToolCache, build_cached_call_tool
-
-    runner = _make_runner()  # baseline; wire the cache manually
-    cache = IoTToolCache()
-    runner._cache = cache
-
-    list_tools = AsyncMock(return_value=_MOCK_IOT_TOOLS)
-    call_tool = AsyncMock(return_value=_TOOL_RESPONSE)
-    runner._list_tools = list_tools
-    runner._call_tool = build_cached_call_tool(call_tool, cache)
-
-    _install_llm(
-        runner,
-        [
-            _PLAN_ONE_IOT_STEP, '{"site_name": "MAIN"}',
-            _PLAN_ONE_IOT_STEP, '{"site_name": "MAIN"}',
-        ],
-    )
-
-    t1 = await runner.run("List assets at site MAIN")
-    t2 = await runner.run("List assets at site MAIN")
-
-    assert t1.steps[0].cache_hit is False
-    assert t2.steps[0].cache_hit is True
-    assert call_tool.await_count == 1
-    assert t2.cache_summary["hits"] == 1
 
 
 # ── query-intent cache short-circuit ──────────────────────────────────────────
@@ -208,24 +172,16 @@ class _StubAsteriaCache:
 
 
 @pytest.mark.anyio
-async def test_full_asteria_iot_layer_hits_on_repeat():
+async def test_full_asteria_query_cache_hits_on_repeat():
     """Inject a stub AsteriaCache to exercise the full-asteria branch of timer."""
-    from asteria.integrations.assetops import (
-        AsteriaIoTToolLayer,
-        build_asteria_cached_call_tool,
-    )
-
-    # Bypass the heavy build_asteria_cache_stack() by constructing the runner
-    # without full_asteria then wiring the Asteria layer manually.
     runner = _make_runner()
     stub = _StubAsteriaCache()
     runner._asteria_cache = stub
-    runner._asteria_tool_layer = AsteriaIoTToolLayer(stub)
 
     list_tools = AsyncMock(return_value=_MOCK_IOT_TOOLS)
     call_tool = AsyncMock(return_value=_TOOL_RESPONSE)
     runner._list_tools = list_tools
-    runner._call_tool = build_asteria_cached_call_tool(call_tool, runner._asteria_tool_layer)
+    runner._call_tool = call_tool
 
     _install_llm(
         runner,
@@ -238,12 +194,10 @@ async def test_full_asteria_iot_layer_hits_on_repeat():
     t1 = await runner.run("List assets at site MAIN")
     t2 = await runner.run("List assets at site MAIN")
 
-    # Run 1: miss at every layer, MCP called once, result stored both at the
-    # IoT tool layer and at the query-level Asteria cache.
-    assert t1.steps[0].cache_hit is False
+    # Run 1: miss at the query layer, execute normally, then store the result.
     assert t1.asteria_query_hit is False
-    # Run 2: query-level Asteria cache returns the stored answer pre-planner,
-    # so the run returns immediately with no steps executed.
+    assert len(t1.steps) == 1
+    # Run 2: query-level Asteria cache returns the stored answer pre-planner.
     assert t2.asteria_query_hit is True
     assert t2.steps == []
     assert t2.discovery_s == 0.0
@@ -253,67 +207,15 @@ async def test_full_asteria_iot_layer_hits_on_repeat():
     assert t2.asteria_summary is not None
 
 
-@pytest.mark.anyio
-async def test_full_asteria_iot_layer_hits_when_query_cache_disabled():
-    """With query-level cache disabled, second run hits the IoT tool cache."""
-    from asteria.integrations.assetops import (
-        AsteriaIoTToolLayer,
-        build_asteria_cached_call_tool,
-    )
-
-    runner = _make_runner()
-
-    # Stub cache that only hits on IoT tool keys (not on the question string).
-    class _IoTOnlyStub(_StubAsteriaCache):
-        def __init__(self) -> None:
-            super().__init__()
-
-        def lookup(self, key):  # noqa: ANN001
-            # Only hit on the composite IoT key, not on free-text questions.
-            if isinstance(key, str) and key.startswith("iot|"):
-                return super().lookup(key)
-            return None, {"hit": False, "source": None}
-
-        def insert(self, key, value, cost=0.0, latency_ms=0.0):  # noqa: ANN001
-            if isinstance(key, str) and key.startswith("iot|"):
-                super().insert(key, value, cost, latency_ms)
-            # else: drop it — question-level entries are not stored in this variant.
-
-    stub = _IoTOnlyStub()
-    runner._asteria_cache = stub
-    runner._asteria_tool_layer = AsteriaIoTToolLayer(stub)
-
-    list_tools = AsyncMock(return_value=_MOCK_IOT_TOOLS)
-    call_tool = AsyncMock(return_value=_TOOL_RESPONSE)
-    runner._list_tools = list_tools
-    runner._call_tool = build_asteria_cached_call_tool(call_tool, runner._asteria_tool_layer)
-
-    _install_llm(
-        runner,
-        [
-            _PLAN_ONE_IOT_STEP, '{"site_name": "MAIN"}',
-            _PLAN_ONE_IOT_STEP, '{"site_name": "MAIN"}',
-        ],
-    )
-
-    t1 = await runner.run("List assets at site MAIN")
-    t2 = await runner.run("List assets at site MAIN")
-
-    assert t1.steps[0].cache_hit is False
-    assert t2.steps[0].cache_hit is True
-    assert t2.asteria_query_hit is False
-    assert call_tool.await_count == 1
-
-
 # ── mutual-exclusion CLI guard ────────────────────────────────────────────────
 
 
-def test_cli_rejects_full_asteria_with_lightweight_flags(capsys):
-    """timer.main raises SystemExit when --full-asteria + --cache are combined."""
+def test_cli_rejects_full_asteria_with_query_cache(capsys):
+    """timer.main raises SystemExit when --full-asteria + --query-cache are combined."""
     import asyncio
 
     parser = timer._build_parser()
-    args = parser.parse_args(["--full-asteria", "--cache", "Q"])
+    args = parser.parse_args(["--full-asteria", "--query-cache", "Q"])
     with pytest.raises(SystemExit) as excinfo:
         asyncio.run(timer._main(args))
     assert "full-asteria" in str(excinfo.value).lower()

@@ -13,8 +13,15 @@ Usage:
 
 Profiling modes (pick one):
   Baseline (no cache):  timer.py --skip-summary "..."
-  Full Asteria paper stack (embeddings + judger + Sine, IoT tool + query layer):
+  Query-level semantic cache (pre-planner short-circuit):
+    Lightweight (difflib, no heavy deps):
+                          timer.py --skip-summary --query-cache "..."
+    Full Asteria paper stack (Qwen embeddings + reranker judger + Sine):
                           timer.py --skip-summary --full-asteria "..."
+
+Tool-call-level caching was removed on purpose: tool args are already
+structured JSON, so a semantic cache there adds no value over exact match
+and the MCP call itself. Semantic reuse only matters at the question level.
 """
 
 from __future__ import annotations
@@ -36,8 +43,6 @@ class StepTiming:
     tool_call_s: float = 0.0     # time spent in the MCP tool call
     total_s: float = 0.0
     success: bool = True
-    cache_hit: bool | None = None
-    cache_mode: str = ""
 
 
 @dataclass
@@ -48,7 +53,6 @@ class RunTiming:
     steps: list[StepTiming] = field(default_factory=list)
     summarization_s: float = 0.0
     total_s: float = 0.0
-    cache_summary: dict[str, object] | None = None
     query_cache_summary: dict[str, object] | None = None
     query_cache_hit: bool = False
     query_cache_mode: str = ""
@@ -69,9 +73,6 @@ class ProfiledRunner:
         self,
         model_id: str,
         server_paths: dict | None = None,
-        cache_enabled: bool = False,
-        cache_semantic: bool = True,
-        cache_semantic_threshold: float = 0.94,
         summarize: bool = True,
         summary_max_chars: int = 12000,
         step_response_max_chars: int = 3000,
@@ -95,10 +96,8 @@ class ProfiledRunner:
         self._server_paths = server_paths or DEFAULT_SERVER_PATHS
         self._planner = Planner(self._llm)
         self._executor = Executor(self._llm, self._server_paths)
-        self._cache = None
         self._query_cache = None
         self._asteria_cache = None
-        self._asteria_tool_layer = None
         self._summarize = summarize
         self._summary_max_chars = summary_max_chars
         self._step_response_max_chars = step_response_max_chars
@@ -110,26 +109,11 @@ class ProfiledRunner:
 
         if full_asteria:
             from asteria.integrations.assetops.full_asteria_adapter import (
-                AsteriaIoTToolLayer,
                 build_asteria_cache_stack,
-                build_asteria_cached_call_tool,
             )
 
             self._asteria_cache = build_asteria_cache_stack()
-            self._asteria_tool_layer = AsteriaIoTToolLayer(self._asteria_cache)
-            self._call_tool = build_asteria_cached_call_tool(
-                self._call_tool, self._asteria_tool_layer
-            )
-        elif cache_enabled:
-            from asteria.integrations.assetops import IoTToolCache, build_cached_call_tool
-
-            self._cache = IoTToolCache(
-                enable_semantic=cache_semantic,
-                semantic_threshold=cache_semantic_threshold,
-            )
-            self._call_tool = build_cached_call_tool(self._call_tool, self._cache)
-
-        if query_cache_enabled and not full_asteria:
+        elif query_cache_enabled:
             from asteria.integrations.assetops import QueryIntentCache
 
             self._query_cache = QueryIntentCache(
@@ -244,12 +228,6 @@ class ProfiledRunner:
                 t_tool = time.perf_counter()
                 response = await self._call_tool(server_path, step.tool, resolved_args)
                 st.tool_call_s = time.perf_counter() - t_tool
-                if self._asteria_tool_layer is not None:
-                    st.cache_hit = bool(self._asteria_tool_layer.last_event.get("hit", False))
-                    st.cache_mode = str(self._asteria_tool_layer.last_event.get("mode", ""))
-                elif self._cache is not None:
-                    st.cache_hit = bool(self._cache.last_event.get("hit", False))
-                    st.cache_mode = str(self._cache.last_event.get("mode", ""))
 
                 result = StepResult(
                     step_number=step.step_number,
@@ -300,8 +278,6 @@ class ProfiledRunner:
             timing.summarization_s = time.perf_counter() - t0
         else:
             timing.summarization_s = 0.0
-        if self._cache is not None:
-            timing.cache_summary = self._cache.summary()
         if self._query_cache is not None:
             self._query_cache.store(
                 question,
@@ -352,12 +328,7 @@ def print_run(timing: RunTiming, run_index: int | None = None) -> None:
         ("Planning (LLM)", timing.planning_s),
     ]
     for st in timing.steps:
-        cache_tag = ""
-        if st.cache_hit is True:
-            cache_tag = " [cache HIT]"
-        elif st.cache_hit is False:
-            cache_tag = " [cache MISS]"
-        tag = f"Step {st.step_number} [{st.server}] {st.tool}{cache_tag}"
+        tag = f"Step {st.step_number} [{st.server}] {st.tool}"
         rows.append((tag, st.total_s))
         if st.llm_resolve_s > 0:
             rows.append((f"  └─ LLM resolve", st.llm_resolve_s))
@@ -379,13 +350,6 @@ def print_run(timing: RunTiming, run_index: int | None = None) -> None:
             + f"QueryCache: hit={timing.query_cache_hit} mode={timing.query_cache_mode or 'n/a'} "
             + f"hits={s.get('hits', 0)} misses={s.get('misses', 0)} "
             + f"rate={float(s.get('hit_rate', 0.0)):.1%}"
-        )
-    if timing.cache_summary:
-        s = timing.cache_summary
-        print(
-            "  "
-            + f"Cache: hits={s.get('hits', 0)} misses={s.get('misses', 0)} "
-            + f"hit_rate={float(s.get('hit_rate', 0.0)):.1%} entries={s.get('entries', 0)}"
         )
     if timing.asteria_summary:
         s = timing.asteria_summary
@@ -423,13 +387,6 @@ def print_summary(timings: list[RunTiming]) -> None:
     ]
     for name, values in phases:
         print(f"  {name:<{col}}  {stats(values)}")
-    cache_runs = [t.cache_summary for t in timings if t.cache_summary is not None]
-    if cache_runs:
-        hits = sum(int(s.get("hits", 0)) for s in cache_runs)
-        misses = sum(int(s.get("misses", 0)) for s in cache_runs)
-        total = hits + misses
-        rate = hits / total if total else 0.0
-        print(f"  {'Cache (aggregate)':<{col}}  hits={hits} misses={misses} rate={rate:.1%}")
     q_cache_runs = [t.query_cache_summary for t in timings if t.query_cache_summary is not None]
     if q_cache_runs:
         hits = sum(int(s.get("hits", 0)) for s in q_cache_runs)
@@ -469,11 +426,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Number of times to run the query (default: 1). Use 3+ for stable averages.",
     )
     parser.add_argument(
-        "--cache",
-        action="store_true",
-        help="Enable Asteria IoT tool cache wrapper during profiling.",
-    )
-    parser.add_argument(
         "--query-cache",
         action="store_true",
         help="Enable query-intent semantic cache before planning.",
@@ -491,18 +443,6 @@ def _build_parser() -> argparse.ArgumentParser:
         default=1800.0,
         metavar="SECONDS",
         help="TTL for query-intent cache entries (default: 1800).",
-    )
-    parser.add_argument(
-        "--cache-no-semantic",
-        action="store_true",
-        help="Disable semantic fallback in cache (exact-match only).",
-    )
-    parser.add_argument(
-        "--cache-semantic-threshold",
-        type=float,
-        default=0.94,
-        metavar="RATIO",
-        help="Semantic similarity threshold (default: 0.94).",
     )
     parser.add_argument(
         "--skip-summary",
@@ -528,7 +468,7 @@ def _build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help=(
             "Use paper Asteria stack (Qwen embeddings + reranker judger + Sine / AsteriaCache) "
-            "for query-level and IoT tool caching. Incompatible with --cache and --query-cache. "
+            "for query-level caching. Incompatible with --query-cache. "
             "Requires torch, sentence-transformers, faiss-cpu, transformers."
         ),
     )
@@ -536,16 +476,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 async def _main(args: argparse.Namespace) -> None:
-    if args.full_asteria and (args.cache or args.query_cache):
+    if args.full_asteria and args.query_cache:
         raise SystemExit(
-            "Use either --full-asteria alone or the lightweight --cache / --query-cache flags, "
-            "not both."
+            "Use either --full-asteria or --query-cache, not both."
         )
     runner = ProfiledRunner(
         model_id=args.model_id,
-        cache_enabled=args.cache,
-        cache_semantic=not args.cache_no_semantic,
-        cache_semantic_threshold=args.cache_semantic_threshold,
         query_cache_enabled=args.query_cache,
         query_cache_threshold=args.query_cache_threshold,
         query_cache_ttl_seconds=args.query_cache_ttl_seconds,

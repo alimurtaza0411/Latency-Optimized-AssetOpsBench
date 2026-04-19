@@ -241,8 +241,6 @@ class RequestResult:
     planning_s: float | None
     execution_s: float | None
     summarization_s: float | None
-    cache_hits: int
-    cache_misses: int
     query_cache_hit: bool = False
     query_cache_mode: str = ""
     error: str | None = None
@@ -283,23 +281,9 @@ def build_zipf_workload(
     return out
 
 
-def _count_step_cache(timing: RunTiming) -> tuple[int, int]:
-    hits = 0
-    misses = 0
-    for step in timing.steps:
-        if step.cache_hit is True:
-            hits += 1
-        elif step.cache_hit is False:
-            misses += 1
-    return hits, misses
-
-
 async def run_workload(
     workload: list[WorkloadItem],
     model_id: str,
-    cache_enabled: bool,
-    cache_semantic: bool,
-    cache_threshold: float,
     include_summary: bool,
     summary_max_chars: int,
     step_response_max_chars: int,
@@ -314,9 +298,6 @@ async def run_workload(
     runner = ProfiledRunner(
         model_id=model_id,
         server_paths=server_paths,
-        cache_enabled=cache_enabled,
-        cache_semantic=cache_semantic,
-        cache_semantic_threshold=cache_threshold,
         query_cache_enabled=query_cache_enabled,
         query_cache_threshold=query_cache_threshold,
         query_cache_ttl_seconds=query_cache_ttl_seconds,
@@ -332,7 +313,6 @@ async def run_workload(
         while attempt <= llm_retries:
             try:
                 timing = await runner.run(item.query)
-                h, m = _count_step_cache(timing)
                 results.append(
                     RequestResult(
                         scenario_name=item.scenario_name,
@@ -342,8 +322,6 @@ async def run_workload(
                         planning_s=timing.planning_s,
                         execution_s=timing.execution_s,
                         summarization_s=timing.summarization_s,
-                        cache_hits=h,
-                        cache_misses=m,
                         query_cache_hit=timing.query_cache_hit,
                         query_cache_mode=timing.query_cache_mode,
                     )
@@ -365,8 +343,6 @@ async def run_workload(
                             planning_s=None,
                             execution_s=None,
                             summarization_s=None,
-                            cache_hits=0,
-                            cache_misses=0,
                             error=last_error,
                         )
                     )
@@ -380,11 +356,7 @@ def summarize(label: str, results: list[RequestResult]) -> dict[str, Any]:
     failures = [r for r in results if r.error is not None]
     totals = [r.total_s for r in successes if r.total_s is not None]
     execs = [r.execution_s for r in successes if r.execution_s is not None]
-    hits = sum(r.cache_hits for r in results)
-    misses = sum(r.cache_misses for r in results)
     query_hits = sum(1 for r in results if r.query_cache_hit)
-    total_cache_events = hits + misses
-    hit_rate = (hits / total_cache_events) if total_cache_events else 0.0
     return {
         "label": label,
         "requests": len(results),
@@ -394,9 +366,6 @@ def summarize(label: str, results: list[RequestResult]) -> dict[str, Any]:
         "total_median_s": median(totals) if totals else 0.0,
         "total_p95_s": sorted(totals)[int(0.95 * (len(totals) - 1))] if totals else 0.0,
         "execution_avg_s": mean(execs) if execs else 0.0,
-        "cache_hits": hits,
-        "cache_misses": misses,
-        "cache_hit_rate": hit_rate,
         "query_cache_hits": query_hits,
         "query_cache_hit_rate": (query_hits / len(results)) if results else 0.0,
     }
@@ -411,9 +380,6 @@ def print_summary_table(summary: dict[str, Any]) -> None:
     print(f"  total median(s): {summary['total_median_s']:.3f}")
     print(f"  total p95 (s)  : {summary['total_p95_s']:.3f}")
     print(f"  exec avg (s)   : {summary['execution_avg_s']:.3f}")
-    print(f"  cache hits     : {summary['cache_hits']}")
-    print(f"  cache misses   : {summary['cache_misses']}")
-    print(f"  cache hit rate : {summary['cache_hit_rate']:.1%}")
     print(f"  query hits     : {summary['query_cache_hits']}")
     print(f"  query hit rate : {summary['query_cache_hit_rate']:.1%}")
 
@@ -434,22 +400,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--mode",
         choices=["baseline", "cached", "both"],
         default="both",
-        help="Run baseline only, cache only, or both for comparison.",
+        help="Run baseline only, query-cache only, or both for comparison.",
     )
     p.add_argument("--requests", type=int, default=30, help="Number of requests in workload.")
     p.add_argument("--zipf-s", type=float, default=1.1, help="Zipf exponent.")
     p.add_argument("--seed", type=int, default=42, help="Random seed.")
-    p.add_argument(
-        "--cache-no-semantic",
-        action="store_true",
-        help="Disable semantic fallback in cache.",
-    )
-    p.add_argument(
-        "--cache-semantic-threshold",
-        type=float,
-        default=0.94,
-        help="Similarity threshold for semantic fallback.",
-    )
     p.add_argument(
         "--query-cache-threshold",
         type=float,
@@ -529,8 +484,6 @@ async def _main(args: argparse.Namespace) -> None:
             "zipf_s": args.zipf_s,
             "seed": args.seed,
             "model_id": args.model_id,
-            "cache_semantic": not args.cache_no_semantic,
-            "cache_semantic_threshold": args.cache_semantic_threshold,
             "query_cache_threshold": args.query_cache_threshold,
             "query_cache_ttl_seconds": args.query_cache_ttl_seconds,
             "include_summary": args.include_summary,
@@ -554,9 +507,6 @@ async def _main(args: argparse.Namespace) -> None:
         baseline_results = await run_workload(
             workload=workload,
             model_id=args.model_id,
-            cache_enabled=False,
-            cache_semantic=False,
-            cache_threshold=args.cache_semantic_threshold,
             query_cache_enabled=False,
             query_cache_threshold=args.query_cache_threshold,
             query_cache_ttl_seconds=args.query_cache_ttl_seconds,
@@ -579,9 +529,6 @@ async def _main(args: argparse.Namespace) -> None:
         cached_results = await run_workload(
             workload=workload,
             model_id=args.model_id,
-            cache_enabled=True,
-            cache_semantic=not args.cache_no_semantic,
-            cache_threshold=args.cache_semantic_threshold,
             query_cache_enabled=True,
             query_cache_threshold=args.query_cache_threshold,
             query_cache_ttl_seconds=args.query_cache_ttl_seconds,
@@ -626,4 +573,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
