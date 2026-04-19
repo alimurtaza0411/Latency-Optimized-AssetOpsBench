@@ -1,11 +1,14 @@
 """
 Semantic Judger — Qwen/Qwen3-Reranker-0.6B  (§4.1, §4.2)
 
-Two roles:
+Three roles:
     Role 1 — Relevance scoring (query time):
-        Input:  score(new_query: str, cached_answer: str)
+        Input:  score(new_query, cached_answer, temporal_ctx?)
         Output: float [0,1] — P(cached answer sufficiently answers new query)
         Cache hit confirmed only if output ≥ τ_lsm.
+        When temporal context is provided, the instruction is enriched with
+        bucket type, time windows, and cached-answer age so the model makes
+        a unified semantic + temporal judgement.
 
     Role 2 — Staticity scoring (insertion time):
         Input:  staticity_score(query: str, answer: str)
@@ -18,11 +21,31 @@ The empty <think></think> block suppresses chain-of-thought.
 
 from __future__ import annotations
 
-from typing import List, Tuple
+import datetime
+from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+
+# ── Temporal context passed from cache → Sine → Judger ───────────────────────
+
+@dataclass
+class TemporalContext:
+    """Temporal metadata provided per (query, candidate) pair.
+
+    Created by AsteriaCache.lookup() from the query's TemporalTag and
+    the candidate SemanticElement's stored temporal fields.
+    """
+    query_bucket: str                        # "T1" or "T2"  (T3 bypasses cache)
+    query_window_start: Optional[str] = None # ISO str, T2 only
+    query_window_end: Optional[str] = None   # ISO str, T2 only
+    cached_bucket: str = "T1"
+    cached_window_start: Optional[str] = None
+    cached_window_end: Optional[str] = None
+    cached_created_at: Optional[float] = None  # epoch seconds
 
 
 class SemanticJudger:
@@ -76,37 +99,126 @@ class SemanticJudger:
         pair_probs = F.softmax(torch.stack([no_logit, yes_logit], dim=1), dim=-1)
         return float(pair_probs[0, 1].item())
 
+    # ── Temporal instruction builder ───────────────────────────────────────
+
+    @staticmethod
+    def _build_temporal_instruction(ctx: Optional[TemporalContext] = None) -> str:
+        """Build a relevance-scoring instruction, enriched with temporal
+        context when available.
+
+        T1 (Static/Metadata):
+            Neutral — returns the vanilla base prompt.  We deliberately
+            do NOT bias the model toward acceptance because a
+            misclassified time-sensitive query would get a false hit.
+            The staticity-based TTL already protects true static data.
+
+        T2 (Historical/Bounded-Window):
+            Explicitly state both time windows and the cached-answer
+            timestamp so the model can compare them.  The model must
+            say 'no' when the windows don't align.
+        """
+        base = (
+            "Given a cached IoT agent answer, does it sufficiently answer "
+            "the new query, even if the wording differs?"
+        )
+        if ctx is None:
+            return base
+
+        # ── T1 (Static / Metadata) ───────────────────────────────────
+        # Neutral: use the vanilla prompt.  We do NOT bias the model
+        # toward acceptance because a misclassified time-sensitive query
+        # would otherwise get a false hit.  The staticity-based TTL at
+        # insertion time already provides a safety net for true T1 data.
+        if ctx.query_bucket == "T1":
+            return base
+
+        # ── T2 (Historical / Bounded-Time-Window) ────────────────────
+        if ctx.query_bucket == "T2":
+            parts = [base]
+            parts.append(
+                " This is a time-bounded historical data query. "
+                "The cached answer is ONLY valid if the time window "
+                "it covers matches the time window requested by the new query."
+            )
+
+            if ctx.query_window_start and ctx.query_window_end:
+                parts.append(
+                    f" Requested time window: {ctx.query_window_start} "
+                    f"to {ctx.query_window_end}."
+                )
+            elif ctx.query_window_start:
+                parts.append(
+                    f" Requested start time: {ctx.query_window_start}."
+                )
+
+            if ctx.cached_window_start and ctx.cached_window_end:
+                parts.append(
+                    f" Cached answer time window: {ctx.cached_window_start} "
+                    f"to {ctx.cached_window_end}."
+                )
+            elif ctx.cached_window_start:
+                parts.append(
+                    f" Cached answer start time: {ctx.cached_window_start}."
+                )
+
+            if ctx.cached_created_at is not None:
+                ts = datetime.datetime.fromtimestamp(
+                    ctx.cached_created_at, tz=datetime.timezone.utc
+                ).isoformat()
+                parts.append(f" Cached answer was stored at {ts}.")
+
+            parts.append(
+                " Answer 'yes' ONLY if the cached answer covers the EXACT "
+                "same time window as the new query AND the semantic meaning "
+                "matches. If the time windows differ, answer 'no'."
+            )
+            return "".join(parts)
+
+        # Fallback (should not reach here in normal flow).
+        return base
+
     # ── Role 1: Relevance scoring (query time) ───────────────────────────
 
-    def score(self, new_query: str, cached_answer: str) -> float:
+    def score(
+        self,
+        new_query: str,
+        cached_answer: str,
+        temporal_ctx: Optional[TemporalContext] = None,
+    ) -> float:
         """
         P(yes) that cached_answer sufficiently answers new_query.
         Called during Sine Stage 2 for every ANN candidate.
 
-        Input:  new_query (str), cached_answer (str)
+        Input:  new_query (str), cached_answer (str), temporal_ctx (optional)
         Output: float [0,1]
         """
-        instruction = (
-            "Given a cached IoT agent answer, does it sufficiently answer "
-            "the new query, even if the wording differs?"
-        )
+        instruction = self._build_temporal_instruction(temporal_ctx)
         prompt = self._build_prompt(instruction, new_query, cached_answer)
         return self._yes_prob(prompt)
 
-    def score_batch(self, pairs: List[Tuple[str, str]]) -> List[float]:
+    def score_batch(
+        self,
+        pairs: List[Tuple[str, str]],
+        temporal_ctxs: Optional[List[Optional[TemporalContext]]] = None,
+    ) -> List[float]:
         """
         Batch scoring — more efficient when |candidates| > 1.
 
-        Input:  list of (query, cached_answer) tuples
+        Input:  list of (query, cached_answer) tuples,
+                optional list of TemporalContext per pair
         Output: list of float [0,1] scores
         """
         if not pairs:
             return []
-        instruction = (
-            "Given a cached IoT agent answer, does it sufficiently answer "
-            "the new query, even if the wording differs?"
-        )
-        prompts = [self._build_prompt(instruction, q, a) for q, a in pairs]
+
+        if temporal_ctxs is None:
+            temporal_ctxs = [None] * len(pairs)
+
+        prompts = []
+        for (q, a), ctx in zip(pairs, temporal_ctxs):
+            instruction = self._build_temporal_instruction(ctx)
+            prompts.append(self._build_prompt(instruction, q, a))
+
         inputs = self.tokenizer(
             prompts, padding=True, return_tensors="pt",
             truncation=True, max_length=512

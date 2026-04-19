@@ -22,7 +22,7 @@ import numpy as np
 
 from .config import DEFAULT_CONFIG
 from .semantic_element import SemanticElement
-from .semantic_judger import SemanticJudger
+from .semantic_judger import SemanticJudger, TemporalContext
 
 
 class SineIndex:
@@ -82,9 +82,17 @@ class SineIndex:
         query: str,
         query_vec: np.ndarray,
         ann_only: bool = False,
+        query_temporal_tag: object | None = None,
     ) -> Tuple[Optional[SemanticElement], dict]:
         """
         Returns (matched_se, debug_info).  matched_se is None on a miss.
+
+        Parameters
+        ----------
+        query_temporal_tag : TemporalTag | None
+            If provided, temporal context is built per candidate and
+            forwarded to the judger so it can make a unified
+            semantic + temporal decision.
         """
         debug = {"ann_candidates": 0, "judger_scores": [], "hit": False}
 
@@ -125,8 +133,32 @@ class SineIndex:
             return None, debug
 
         # Stage 2: Semantic Judger — batch score all candidates
+        #          with optional temporal context
         pairs = [(query, se.answer) for _, se in candidates]
-        scores = self.judger.score_batch(pairs)
+
+        temporal_ctxs: list[TemporalContext | None] | None = None
+        if query_temporal_tag is not None:
+            temporal_ctxs = []
+            qb = query_temporal_tag.bucket.value
+            qws = None
+            qwe = None
+            if query_temporal_tag.time_window is not None:
+                qws = query_temporal_tag.time_window.start
+                qwe = query_temporal_tag.time_window.end
+            for _, se in candidates:
+                temporal_ctxs.append(
+                    TemporalContext(
+                        query_bucket=qb,
+                        query_window_start=qws,
+                        query_window_end=qwe,
+                        cached_bucket=se.temporal_bucket,
+                        cached_window_start=se.time_window_start,
+                        cached_window_end=se.time_window_end,
+                        cached_created_at=se.created_at,
+                    )
+                )
+
+        scores = self.judger.score_batch(pairs, temporal_ctxs=temporal_ctxs)
         self.stats["judger_calls"] += len(pairs)
         debug["judger_scores"] = [round(s, 3) for s in scores]
 

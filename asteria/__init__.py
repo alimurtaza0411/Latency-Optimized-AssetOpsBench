@@ -22,6 +22,12 @@ Quick start:
 
 from .config import AsteriaConfig, DEFAULT_CONFIG
 from .integrations.assetops import QueryIntentCache
+from .temporal_classifier import (
+    TemporalBucket,
+    TemporalTag,
+    TimeWindow,
+    classify as temporal_classify,
+)
 
 # Optional heavy imports (sentence-transformers/torch/faiss stack).
 # Keep lightweight integrations importable even when those deps are absent.
@@ -52,6 +58,10 @@ __all__ = [
     "AsteriaConfig",
     "DEFAULT_CONFIG",
     "QueryIntentCache",
+    "TemporalBucket",
+    "TemporalTag",
+    "TimeWindow",
+    "temporal_classify",
 ]
 
 if _HEAVY_IMPORTS_AVAILABLE:
