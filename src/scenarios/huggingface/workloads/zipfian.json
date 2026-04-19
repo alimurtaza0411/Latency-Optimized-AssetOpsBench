@@ -1,0 +1,1502 @@
+[
+  {
+    "query": "What is the predicted energy consumption for Chiller 9 in the week of 2020-04-27 based on data from the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download all sensor data for Chiller 6 from the last week of April '20 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection and remediation system for potential failures, such as condenser water side fouling, for Chiller 9 with equipment ID CWC04009 at main site site with two month\u2019s period from 2020-05-01T12:30:00 to 2022-06-30T19:30:00.  We like to review the chiller\u2019s performance of the period with any anomalies or operation violations as alerts, and provide the guideline on work order generation?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I want to build an anomaly model for identifying a chiller trip failure for MAIN chiller 6. Provide me a list of sensors that I should use, along with the temporal behavior,",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Have there been any anomalies in Chiller 6's Tonnage in the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the summary of the events of equipment CWC04009 for the June of 2020 and provide a summary based on the event group.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection and remediation system for potential failures, such as condenser water side fouling, for Chiller 9 with equipment ID CWC04009 at main site site with two month\u2019s period from 2020-05-01T12:30:00 to 2022-06-30T19:30:00.  We like to review the chiller\u2019s performance of the period with any anomalies or operation violations as alerts, and provide the guideline on work order generation?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When compressor motor of Chiller 6 at MAIN site fails, what is the temporal behavior of the power input?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Determine which alert or work-order descriptions for CWC04009 exhibit the fastest growth trend, indicating components that may need early replacement in the life-cycle plan.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 at MAIN site that can be detected by Chiller 6 Chiller Efficiency.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can I list all the metrics monitored by CQPA AHU 2B? use site MAIN",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are there any failure modes of Chiller 6 that can be predicted by monitoring the vibration sensor data?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you predict Chiller 9's energy usage for next week based on data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Could you identify any causal linkages between anomalies across KPIs to better understand the severity and interconnectedness?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Detect clusters of alerts and work orders on CWC04009 that signal elevated failure risk for the next planning cycle, guiding proactive maintenance budgeting.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all installed sensors of asset Chiller 6 at MAIN site.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download all sensor data for Chiller 6 from the last week of April '20 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What IoT sites are available?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the daily count of the events of alert, anomaly for 2021 for equipment CWC04009.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When the Liquid Refrigerant Evaporator Temperature of Chiller 6 drops, what failure is most likely to occur?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Rank alert descriptions for CWC04009 by how strongly they predict subsequent corrective work orders, supporting long-term failure-risk mitigation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to predict the next work order probability for the equipment labeled as CWC04013.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 at MAIN site have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to review the performance of chiller 9 with equipment ID CWC04009 at main site site for June 2020 and track any anomalies or operation alerts. Tell me what corrective work orders have been scheduled, and whether new work order should generate.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Detect clusters of alerts and work orders on CWC04009 that signal elevated failure risk for the next planning cycle, guiding proactive maintenance budgeting.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 that can be detected by Chiller 6 Supply Temperature.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Measure typical time gaps between alerts and the corrective work orders they precede for CWC04009 to refine the life-cycle maintenance timeline.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I want to build an anomaly model for identifying a chiller trip failure for MAIN chiller 6. Provide me a list of sensors that I should use, along with the temporal behavior,",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are any time series forecasting models supported?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I want to build an anomaly model for identifying a chiller trip failure for MAIN chiller 6. Provide me a list of sensors that I should use, along with the temporal behavior,",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Generate an anomaly detection recipe for detecting compressor motor failure for Chiller 6 at MAIN site.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection system for a potential failure condenser Water side fouling for Chiller 9. Monitor Chiller 9 at main site site from 2020-04-20T12:30:00 to 2020-05-12T19:30:00, identify anomalous behaviors and provide a work order recomendation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "If compressor overheating occurs for Chiller 6, which sensor should be prioritized for monitoring this specific failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts. Tell me what corrective work orders have been scheduled, and whether new work order should generate.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you predict Chiller 9's energy usage for next week based on data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you predict Chiller 9's performance for next week based on data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve metadata for Chiller 6 located at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is Anomaly Detection supported in TSFM?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Quantify how often alerts and corrective work orders cluster together for CWC04009 to identify high-risk operational periods in the years ahead.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Determine which alert or work-order descriptions account for the highest event counts on CWC04009 and should therefore drive allocation of funds in the next 10-year capital budget.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you check if there are any anomalies for chiller tonnage, and do you think I should create a work order after reviewing the anomalies?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Determine which alert or work-order descriptions for CWC04009 exhibit the fastest growth trend, indicating components that may need early replacement in the life-cycle plan.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the power consumption of CQPA AHU 1 on mar 13 '20, site MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the forecast for Chiller 6's energy consumption for next week based on data from the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is LSTM model supported in TSFM?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What are the failure modes of Chiller 6 at MAIN site that can be identified by analyzing the data from the available sensors?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the daily count of alert, anomaly and work order event for the May 2020 for equipment CWC04009.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When the Liquid Refrigerant Evaporator Temperature of Chiller 6 at MAIN site drops, what failure is most likely to occur?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Analyse sequences where alerts precede corrective work orders on CWC04009 to improve failure anticipation over the asset\u2019s remaining life-cycle.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you check if there are any anomalies for chiller tonnage, and do you think I should create a work order after reviewing the anomalies?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What's the forecast for Chiller 6's Tonnage for next week based on the data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Detect clusters of alerts and work orders on CWC04009 that signal elevated failure risk for the next planning cycle, guiding proactive maintenance budgeting.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to check the work order distribution for the equipment labeled as CWC04013 for the year 2017.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Analyse sequences where alerts precede corrective work orders on CWC04009 to improve failure anticipation over the asset\u2019s remaining life-cycle.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the work order of equipment CWC04013 for year 2017.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Build a predictive model from historical alerts and work orders of CWC04009 to forecast failures and replacement needs over the forthcoming 10-year horizon.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I want to build an anomaly model for identifying a chiller trip failure for MAIN chiller 6. Provide me a list of sensors that I should use, along with the temporal behavior,",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 that can be detected by temperature sensors and power input sensors.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to predict the next work order probability for the equipment labeled as CWC04013.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve metadata for Chiller 6 located at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download the metadata for Chiller 3 at the MAIN facility.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is Chronos model supported in TSFM?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the daily count of the events of alert, anomaly for the May 2020 for equipment CWC04009.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What's the forecast for Chiller 6's future energy consumption for next week based on data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the forecast for 'Chiller 9 Condenser Water Flow' in the week of 2020-04-27 based on data from the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the predicted energy consumption for Chiller 9 in the week of 2020-04-27 based on data from the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get all the events of equipment CWC04009 for the first week of June of 2020 and provide a summary based on the event group for work order event, alert, and anomaly.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Provide some sensors of asset Wind Turbine.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download the metadata for Chiller 3 at the MAIN facility.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I am using historical work order information upto end of June 2020 for prioritizing maintenance. Which work orders should I prioritize first for Chiller 9 with equipment ID CWC04009 in July 2020?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "How many models with context length exactly 96 are supported?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to predict the next work order probability for the equipment labeled as CWC04013.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "How can I analyze anomalies across multiple KPIs to better diagnose the root cause of these issues?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Using historical counts, project how many preventive (PM) and corrective (CM) work orders each major description category is likely to generate for CWC04009 over the coming decade.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection system for a potential failure condenser Water side fouling for Chiller 9. Monitor Chiller 9 at main site site from 2020-04-20T12:30:00 to 2020-05-12T19:30:00, identify anomalous behaviors and provide a work order recomendation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection system for a potential failure condenser Water side fouling for Chiller 9. Monitor Chiller 9 at main site site from 2020-04-20T12:30:00 to 2020-05-12T19:30:00, identify anomalous behaviors and provide a work order recomendation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the alerts for chiller 9 with equipment ID CWC04009 for June 2020 and the work order should be generated based on the type of alerts.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the work order of equipment CWC04013 for year 2017.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can I list all the metrics monitored by CQPA AHU 2B? use site MAIN",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "If Evaporator Water side fouling occurs for Chiller 6 at MAIN site, which sensor is most relevant for monitoring this specific failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6 from June 2020.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "How many models with context length exactly 96 are supported?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What are the anomaly detection results for Chiller 9's Tonnage and Power Input in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Which corrective work orders for equipment CWC04009 in year 2017 can be bundled in the next maintenance window? A bundle means that several work orders are executed in a short period, say in two weeks.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to predict the next work order probability for the equipment labeled as CWC04013.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "If Evaporator Water side fouling occurs for Chiller 6 at MAIN site, which sensor is most relevant for monitoring this specific failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the events of equipment CWC04009 for year 2019 and provide a summary based on the event group, such as work order event, alerts and anomaly events.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What was the latest supply humidity from CQPA AHU 1 at site MAIN on sept 3 2015? return in a file",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of asset Wind Turbine.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to predict the next work order probability for the equipment labeled as CWC04013.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Generate a machine learning recipe for detecting overheating failure for Chiller 6 at MAIN site. Result should include feature sensors and target sensor.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection and remediation system for potential failures, such as condenser water side fouling, for Chiller 9 with equipment ID CWC04009 at main site site with two month\u2019s period from 2020-05-01T12:30:00 to 2022-06-30T19:30:00.  We like to review the chiller\u2019s performance of the period with any anomalies or operation violations as alerts, and provide the guideline on work order generation?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Determine which alert or work-order descriptions for CWC04009 exhibit the fastest growth trend, indicating components that may need early replacement in the life-cycle plan.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "retrieve the supply temperature data recorded last week for Chiller 3 (MAIN site)?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What are the failure modes of Chiller 6 that can be identified by analyzing the data from the available sensors?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 at MAIN site that can be detected by Chiller 6 Chiller Efficiency.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Which corrective work orders for equipment CWC04009 in year 2017 can be bundled in the next maintenance window? A bundle means that several work orders are executed in a short period, say in two weeks.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Determine which alert or work-order descriptions for CWC04009 exhibit the fastest growth trend, indicating components that may need early replacement in the life-cycle plan.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is LSTM model supported in TSFM?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Detect clusters of alerts and work orders on CWC04009 that signal elevated failure risk for the next planning cycle, guiding proactive maintenance budgeting.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you provide guidance on bundling corrective work orders together to optimize the maintenance schedule for Chiller 9 with equipment ID CWC04009 covering years of 2017, 2018 and 2019, bundle has to be happen within two weeks and have at least two work orders, also tell the details of each bundle?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all installed sensors of asset Chiller 6.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of asset Wind Turbine.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you predict Chiller 9's energy usage for next week based on data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Find a model for energy forecasting with context length 96 and nothing else.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you provide guidance on bundling corrective work orders together to optimize the maintenance schedule for Chiller 9 with equipment ID CWC04009 covering years of 2017, 2018 and 2019, bundle has to be happen within two weeks and have at least two work orders, also tell the details of each bundle?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download the metadata for Chiller 3 at the MAIN facility.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When compressor motor of Chiller 6 fails, what is the temporal behavior of the power input?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is any model with context length 1024 supported in TSFM?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I am using historical work order information upto end of June 2020 for prioritizing maintenance. Which work orders should I prioritize first for Chiller 9 with equipment ID CWC04009 in July 2020?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What assets can be found at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 that can be detected by temperature sensors.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all sensors of Chiller 6 that are potentially relevant to Compressor Overheating.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the asset details for Chiller 9 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Just notice two anomalies 'KPI Cooling Load above upper bound' and 'KPI Delta Setpoint above upper bound' happened for equipment CWC04009, can you recommend top three work orders to address this problem?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are there any anomalies detected in Chiller 9's Tonnage in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When compressor motor of Chiller 6 fails, what is the temporal behavior of the power input?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When compressor motor of Chiller 6 fails, what is the temporal behavior of the power input?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Provide some sensors of asset Wind Turbine.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection system for a potential failure condenser Water side fouling for Chiller 9. Monitor Chiller 9 at main site site from 2020-04-20T12:30:00 to 2020-05-12T19:30:00, identify anomalous behaviors and provide a work order recomendation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What types of time series analysis are supported?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve metadata for Chiller 6 located at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Analyse sequences where alerts precede corrective work orders on CWC04009 to improve failure anticipation over the asset\u2019s remaining life-cycle.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to check the work order distribution for the equipment labeled as CWC04013 for the year 2017.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6 from June 2020.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get all the events of equipment CWC04009 for the June of 2020 and provide a summary based on the event group for work order, alert, and anomaly.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download all sensor data for Chiller 6 from the last week of April '20 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection and remediation system for potential failures, such as condenser water side fouling, for Chiller 9 with equipment ID CWC04009 at main site site with two month\u2019s period from 2020-05-01T12:30:00 to 2022-06-30T19:30:00.  We like to review the chiller\u2019s performance of the period with any anomalies or operation violations as alerts, and provide the guideline on work order generation?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Which assets are located at the MAIN facility?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all installed sensors of asset Chiller 6 at MAIN site.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "what was the supply temperature from CQPA AHU 2B on sept 19, 2020 at quarter to midnight, at site MAIN? return in a file",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get failure modes for Chiller 6 and only include in final response those that can be monitored using the available sensors.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Just notice an anomaly 'KPI Cooling Load above upper bound' happens for equipment CWC04009, can you recommend top three work orders to address this problem?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the power consumption of CQPA AHU 1 on mar 13 '20, site MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Examine whether the year-over-year increase in corrective maintenance for CWC04009 warrants shifting resources from annual repairs toward multi-year replacement planning.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the predicted energy consumption for Chiller 9 in the week of 2020-04-27 based on data from the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Generate an anomaly detection recipe for detecting compressor motor failure for Chiller 6 at MAIN site.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve metadata for Chiller 6 located at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "what was the supply temperature from CQPA AHU 2B on sept 19, 2020 at quarter to midnight, at site MAIN? return in a file",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 at MAIN site have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all sensors of Chiller 6 that are potentially relevant to Compressor Overheating.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are any time series forecasting models supported?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are there any failure modes of Chiller 6 at MAIN site that can be predicted by monitoring the vibration sensor data?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Which corrective work orders for equipment CWC04009 in year 2017 can be bundled in the next maintenance window? A bundle means that several work orders are executed in a short period, say in two weeks.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When an anomaly happens for equipment CWC04009, can you recommend a list of candidate work orders and give me a summary of work order as percentage?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to retrieve the preventive work order details for the equipment labeled as CWC04013 for the year 2017.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Has any anomaly been detected in Chiller 6's Return Temperature in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you list the IoT sites?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "how much power was CQPA AHU 1 (MAIN site) using on 6/14/20?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009 using predict_next_work_order_probability function?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get all the events of equipment CWC04009 for the first week of June of 2020 and provide a summary based on the event group for work order event, alert, and anomaly.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Just notice an anomaly 'KPI Cooling Load above upper bound' happens for equipment CWC04009, can you recommend top three work orders to address this problem?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What is the forecast for 'Chiller 9 Condenser Water Flow' in the week of 2020-04-27 based on data from the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 at MAIN site that can be detected by Chiller 6 Chiller Efficiency.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 at MAIN site have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "what was the return temperature from CQPA AHU 2B on sept 19, 2020 at 7pm, at site MAIN? return data in a file",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection and remediation system for potential failures, such as condenser water side fouling, for Chiller 9 with equipment ID CWC04009 at main site site with two month\u2019s period from 2020-05-01T12:30:00 to 2022-06-30T19:30:00.  We like to review the chiller\u2019s performance of the period with any anomalies or operation violations as alerts, and provide the guideline on work order generation?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the asset details for Chiller 9 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is there any anomaly detected in Chiller 6's Tonnage in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve metadata for Chiller 6 located at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 at MAIN site that can be detected by temperature sensors.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all sensors of Chiller 6 at MAIN site that are potentially relevant to Compressor Overheating.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Build a predictive model from historical alerts and work orders of CWC04009 to forecast failures and replacement needs over the forthcoming 10-year horizon.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "If compressor overheating occurs for Chiller 6, which sensor should be prioritized for monitoring this specific failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are there any failure modes of Chiller 6 at MAIN site that can be predicted by monitoring the vibration sensor data?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What are time series pretrained models are available in system?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What are time series pretrained models are available in system?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download all sensor data for Chiller 6 from the last week of April '20 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Analyse sequences where alerts precede corrective work orders on CWC04009 to improve failure anticipation over the asset\u2019s remaining life-cycle.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Using your knowledge of the industrial asset, can you suggest me a work order for alert RUL0014 with the context of 'Chiller - Cooling Substance Delta T Low' for closed-loop water-cool chiller its load is higher than the upper bound?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Rank alert descriptions for CWC04009 by how strongly they predict subsequent corrective work orders, supporting long-term failure-risk mitigation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the alerts for chiller 9 with equipment ID CWC04009 for June 2020 and the work order should be generated based on the type of alerts.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the work order of equipment CWC04013 for year 2017.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can I list all the metrics monitored by CQPA AHU 2B? use site MAIN",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "If compressor overheating occurs for Chiller 6 at MAIN site, which sensor should be prioritized for monitoring this specific failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all installed sensors of asset Chiller 6.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the events of equipment CWC04009 for year 2019 and provide a summary based on the event group, such as work order event, alerts and anomaly events.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 at MAIN site have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection and remediation system for potential failures, such as condenser water side fouling, for Chiller 9 with equipment ID CWC04009 at main site site with two month\u2019s period from 2020-05-01T12:30:00 to 2022-06-30T19:30:00.  We like to review the chiller\u2019s performance of the period with any anomalies or operation violations as alerts, and provide the guideline on work order generation?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is there any anomaly detected in Chiller 9's Condenser Water Flow in the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the daily count of alert, anomaly and work order event for the May 2020 for equipment CWC04009.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you predict Chiller 9's performance for next week based on data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What's the forecast for Chiller 6's Tonnage for next week based on the data from the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to review the performance of chiller 9 with equipment ID CWC04009 at main site site for June 2020 and track any anomalies or operation alerts. Tell me what corrective work orders have been scheduled, and whether new work order should generate.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp. Use 1% of data for tuning",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6 from June 2020.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I would like to review the performance of chiller 9 with equipment ID CWC04009 at main site site for June 2020 and track any anomalies or operation alerts. Tell me what corrective work orders have been scheduled, and whether new work order should generate.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of Chiller 6 that can be detected by temperature sensors.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download all sensor data for Chiller 6 from the last week of April '20 at the MAIN site.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Finetune a forecasting model for 'Chiller 9 Condenser Water Flow' using data in 'chiller9_finetuning_small.csv' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench tuning query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you detect any anomalies in Chiller 9's Condenser Water Flow in the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "I am using historical work order information upto end of June 2020 for prioritizing maintenance. Which work orders should I prioritize first for Chiller 9 with equipment ID CWC04009 in July 2020?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get sensor data for both Chiller 6 and Chiller 9's Tonnage from first week of June 2020 at MAIN in a single file.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the daily count of alert, anomaly and work order event for the May 2020 for equipment CWC04009.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Provide some sensors of asset Wind Turbine.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Build a predictive model from historical alerts and work orders of CWC04009 to forecast failures and replacement needs over the forthcoming 10-year horizon.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009 using predict_next_work_order_probability function?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Use data in 'chiller9_annotated_small_test.csv' to forecast 'Chiller 9 Condenser Water Flow' with 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp. Use the following parameters as inputs 'Chiller 9 Liquid Refrigerant Evaporator Temperature,Chiller 9 Return Temperature,Chiller 9 Tonnage,Chiller 9 Setpoint Temperature,Chiller 9 Supply Temperature,Chiller 9 Chiller % Loaded,Chiller 9 Condenser Water Supply To Chiller Temperature,Chiller 9 Power Input,Chiller 9 Chiller Efficiency'",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Determine which alert or work-order descriptions account for the highest event counts on CWC04009 and should therefore drive allocation of funds in the next 10-year capital budget.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Identify which alert descriptions for CWC04009 show the steepest upward trend and therefore require priority in the 10-year capital-planning roadmap.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009 using predict_next_work_order_probability function?",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Download sensor data for Chiller 6's Tonnage from the last week of 2020 at the MAIN site",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Using historical counts, project how many preventive (PM) and corrective (CM) work orders each major description category is likely to generate for CWC04009 over the coming decade.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Forecast 'Chiller 9 Condenser Water Flow' using data in 'chiller9_annotated_small_test.csv'. Use parameter 'Timestamp' as a timestamp.",
+    "answer": "[AssetOpsBench inference query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Can you detect any anomalies in Chiller 6's Condenser Water Flow in the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "What was the latest supply humidity from CQPA AHU 1 at site MAIN on sept 3 2015? return in a file",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Purge unit of chiller 6 at MAIN site have possibility to excess purge, what is the plan by the maintenance experts to early detect the failure?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "When an anomaly happens for equipment CWC04009, can you recommend a list of candidate work orders and give me a summary of work order as percentage?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are there any anomalies detected in Chiller 9's Tonnage in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "We are building an early detection system for a potential failure condenser Water side fouling for Chiller 9. Monitor Chiller 9 at main site site from 2020-04-20T12:30:00 to 2020-05-12T19:30:00, identify anomalous behaviors and provide a work order recomendation.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Has any anomaly been detected in Chiller 6's Return Temperature in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Could you generate rules that help distinguish meaningful alerts from spurious ones?",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is there any anomaly detected in Chiller 9's Condenser Water Flow in the week of 2020-04-27 at MAIN?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "List all failure modes of asset Chiller.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Build a predictive model from historical alerts and work orders of CWC04009 to forecast failures and replacement needs over the forthcoming 10-year horizon.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get the events of equipment CWC04009 for year 2019 and provide a summary based on the event group, such as work order event, alerts and anomaly events.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Is there any anomaly detected in Chiller 6's Tonnage in the week of 2020-04-27 at the MAIN site?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Which corrective work orders for equipment CWC04009 in year 2017 can be bundled in the next maintenance window? A bundle means that several work orders are executed in a short period, say in two weeks.",
+    "answer": "[AssetOpsBench decision support scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Analyse sequences where alerts precede corrective work orders on CWC04009 to improve failure anticipation over the asset\u2019s remaining life-cycle.",
+    "answer": "[AssetOpsBench prediction scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Get all the events of equipment CWC04009 for the first week of June of 2020 and provide a summary based on the event group for work order event, alert, and anomaly.",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Retrieve sensor data for Chiller 6 from June 2020.",
+    "answer": "[AssetOpsBench data query scenario response]",
+    "staticity": 6.0
+  },
+  {
+    "query": "Are any time series forecasting models supported?",
+    "answer": "[AssetOpsBench knowledge query scenario response]",
+    "staticity": 6.0
+  }
+]
