@@ -1,0 +1,61 @@
+query_id,role,parent_query_id,parent_hf_id,mcp_type,temporal_class,gen_temperature,text
+1,original,1,1,IoT,static,0.0,What IoT sites are available?
+2,original,2,5,IoT,static,0.0,Retrieve metadata for Chiller 6 located at the MAIN site.
+3,original,3,102,FMSA,static,0.0,List all failure modes of asset Chiller 6.
+4,original,4,117,FMSA,static,0.0,"When compressor motor of Chiller 6 fails, what is the temporal behavior of the power input?"
+5,original,5,201,TSFM,static,0.0,What types of time series analysis are supported?
+6,original,6,412,Workorder,static,0.0,I would like to predict the next work order probability for the equipment labeled as CWC04013.
+7,original,7,605,multiagent,static,0.0,List all failure modes of Chiller 6 at MAIN site that can be detected by temperature sensors.
+8,original,8,9,IoT,anchored,0.0,Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.
+9,original,9,45,IoT,anchored,0.0,"What is the power consumption of CQPA AHU 1 on mar 13 '20, site MAIN?"
+10,original,10,400,Workorder,anchored,0.0,Get the work order of equipment CWC04013 for year 2017.
+11,original,11,405,Workorder,anchored,0.0,"Get all the events of equipment CWC04009 for the June of 2020 and provide a summary based on the event group for work order, alert, and anomaly."
+12,original,12,502,multiagent,anchored,0.0,What is the forecast for 'Chiller 9 Condenser Water Flow' in the week of 2020-04-27 based on data from the MAIN site?
+13,original,13,506,multiagent,anchored,0.0,Is there any anomaly detected in Chiller 9's Condenser Water Flow in the week of 2020-04-27 at MAIN?
+14,original,14,41,IoT,volatile,0.0,What was the latest supply humidity from CQPA AHU 1 at site MAIN on sept 3 2015? return in a file
+15,original,15,413,Workorder,volatile,0.0,"Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009 using predict_next_work_order_probability function?"
+16,original,16,420,Workorder,volatile,0.0,"Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts."
+17,original,17,46,IoT,relative,0.0,retrieve the supply temperature data recorded last week for Chiller 3 (MAIN site)?
+18,original,18,504,multiagent,relative,0.0,Can you forecast Chiller 6's performance for next week based on the data from 2020-04-27 at the MAIN site?
+19,original,19,511,multiagent,relative,0.0,Can you predict Chiller 9's energy usage for next week based on data from the week of 2020-04-27 at MAIN?
+20,original,20,516,multiagent,relative,0.0,What's the forecast for Chiller 6's future energy consumption for next week based on data from the week of 2020-04-27 at MAIN?
+21,paraphrase,1,1,IoT,static,0.3,"Which sites, such as MAIN or POKMAIN, can be accessed through IoT?"
+22,paraphrase,1,1,IoT,static,0.9,Which IoT sites can be accessed?
+23,paraphrase,2,5,IoT,static,0.3,Obtain the metadata associated with Chiller 6 at the MAIN site.
+24,paraphrase,2,5,IoT,static,0.9,Obtain the metadata information for the Chiller 6 equipment at the MAIN site location.
+25,paraphrase,3,102,FMSA,static,0.3,What are the different ways that asset Chiller 6 can fail.
+26,paraphrase,3,102,FMSA,static,0.9,What are the different ways in which the asset Chiller 6 can fail.
+27,paraphrase,4,117,FMSA,static,0.3,How does the power input of Chiller 6 change over time when its compressor motor fails?
+28,paraphrase,4,117,FMSA,static,1.0,What happens to the power input of Chiller 6 as a function of time following a compressor motor failure?
+29,paraphrase,5,201,TSFM,static,0.3,Which time series analysis methods are available for use!
+30,paraphrase,5,201,TSFM,static,1.0,What analytical techniques can be applied to time series data in the system?
+31,paraphrase,6,412,Workorder,static,0.3,What is the predicted likelihood of the next work order for equipment CWC04013!
+32,paraphrase,6,412,Workorder,static,0.9,What is the predicted likelihood of the next work order for equipment CWC04013.
+33,paraphrase,7,605,multiagent,static,0.3,What are the failure modes of Chiller 6 at the MAIN site that temperature sensors are capable of detecting!
+34,paraphrase,7,605,multiagent,static,0.9,What failure modes of Chiller 6 at the MAIN site are detectable using temperature sensors!
+35,paraphrase,8,9,IoT,anchored,0.3,Obtain the % Loaded sensor data for Chiller 6 recorded at the MAIN site during June 2020.
+36,paraphrase,8,9,IoT,anchored,0.9,Obtain the sensor readings for the % Loaded metric of Chiller 6 at the MAIN site for the period of June 2020.
+37,paraphrase,9,45,IoT,anchored,0.3,"On mar 13 '20, at the MAIN site, what was the power consumption of CQPA AHU 1!"
+38,paraphrase,9,45,IoT,anchored,0.9,"On mar 13 '20, what was the power consumption at site MAIN for CQPA AHU 1!"
+39,paraphrase,10,400,Workorder,anchored,0.3,What is the work order for equipment CWC04013 in the year 2017.
+40,paraphrase,10,400,Workorder,anchored,1.0,"For the year 2017, what work was ordered for equipment CWC04013."
+41,paraphrase,11,405,Workorder,anchored,0.3,"What is a summary of the events for equipment CWC04009 that occurred in June 2020, categorized by event group, including work orders, alerts, and anomalies."
+42,paraphrase,11,405,Workorder,anchored,0.9,"What is a summary of the events for equipment CWC04009 in June 2020, categorized by event group, including work orders, alerts, and anomalies."
+43,paraphrase,12,502,multiagent,anchored,0.3,"How is 'Chiller 9 Condenser Water Flow' at the MAIN site expected to trend during the week starting 2020-04-27, according to predictions?"
+44,paraphrase,12,502,multiagent,anchored,1.0,"According to predictions, what pattern can be anticipated for 'Chiller 9 Condenser Water Flow' values at the MAIN site over the seven-day period beginning 2020-04-27?"
+45,paraphrase,13,506,multiagent,anchored,0.3,Were any anomalies found in the Condenser Water Flow of Chiller 9 during the week of 2020-04-27 at the MAIN site?
+46,paraphrase,13,506,multiagent,anchored,0.9,Were any anomalies identified in the Condenser Water Flow of Chiller 9 during the week of 2020-04-27 at the MAIN site?
+47,paraphrase,14,41,IoT,volatile,0.3,"On September 3, 2015, at the MAIN site, what was the most recent supply humidity reading from CQPA AHU 1, and provide the result in a file?"
+48,paraphrase,14,41,IoT,volatile,0.9,"On September 3, 2015, at the MAIN site, what was the most recent supply humidity reading recorded by CQPA AHU 1, and provide this information in a file?"
+49,paraphrase,15,413,Workorder,volatile,0.3,"Given the current date of 2018-01-02, what is the predicted probability of the next work order for equipment CWC04009 using the predict_next_work_order_probability function?"
+50,paraphrase,15,413,Workorder,volatile,0.7,"What is the probability of the next work order for equipment CWC04009 as of 2018-01-02, according to the predict_next_work_order_probability function?"
+51,paraphrase,16,420,Workorder,volatile,0.3,"As of early July 2020, what is the performance review of Chiller 9, identified by equipment ID CWC04009, for the month of June 2020, including any alerts for anomalies or operational violations that occurred during that time?"
+52,paraphrase,16,420,Workorder,volatile,0.9,"As of early July 2020, what is the performance review of Chiller 9, identified as CWC04009, for the month of June 2020, including the identification of any operational anomalies or alerts for violations."
+53,paraphrase,17,46,IoT,relative,0.3,What was the supply temperature data for Chiller 3 at the MAIN site for the period of last week!
+54,paraphrase,17,46,IoT,relative,0.9,What was the supply temperature data for Chiller 3 at the MAIN site during the past week?
+55,paraphrase,18,504,multiagent,relative,0.3,What predictions can be made about Chiller 6's operation at the MAIN site for the upcoming week using data from 2020-04-27?
+56,paraphrase,18,504,multiagent,relative,0.9,What prediction can be made for Chiller 6's operation at the MAIN site for the upcoming week using data from 2020-04-27?
+57,paraphrase,19,511,multiagent,relative,0.3,"What will be the predicted energy consumption of Chiller 9 at the MAIN site for the upcoming week, using historical data from the week starting 2020-04-27."
+58,paraphrase,19,511,multiagent,relative,0.9,"What will be the predicted energy usage of Chiller 9 at the MAIN site for the upcoming week, using data from the week starting 2020-04-27 as a basis?"
+59,paraphrase,20,516,multiagent,relative,0.3,"How is Chiller 6's energy consumption at MAIN expected to trend during the upcoming week, according to predictions made using data from the week starting 2020-04-27?"
+60,paraphrase,20,516,multiagent,relative,0.9,"How is Chiller 6's energy usage at MAIN expected to trend for the upcoming week, given historical data from the week starting 2020-04-27?"
