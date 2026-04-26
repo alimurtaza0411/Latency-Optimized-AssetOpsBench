@@ -1,0 +1,5 @@
+# Outputs of the harness — regenerated per run.
+# (data/paraphrases.csv is committed for reproducibility — re-generate if you
+#  want a different sample; the LLM call is non-deterministic at T>0.)
+data/cache_precision_results.json
+data/latency_results.json

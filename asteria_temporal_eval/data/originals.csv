@@ -1,0 +1,21 @@
+query_id,hf_id,mcp_type,temporal_class,temporal_rationale,text
+1,1,IoT,static,no time component,What IoT sites are available?
+2,5,IoT,static,no time component,Retrieve metadata for Chiller 6 located at the MAIN site.
+3,102,FMSA,static,no time component,List all failure modes of asset Chiller 6.
+4,117,FMSA,static,no time component,"When compressor motor of Chiller 6 fails, what is the temporal behavior of the power input?"
+5,201,TSFM,static,no time component,What types of time series analysis are supported?
+6,412,Workorder,static,predictive task; 'next' is conceptual not temporal,I would like to predict the next work order probability for the equipment labeled as CWC04013.
+7,605,multiagent,static,no time component,List all failure modes of Chiller 6 at MAIN site that can be detected by temperature sensors.
+8,9,IoT,anchored,fixed time period: June 2020,Retrieve sensor data for Chiller 6's % Loaded from June 2020 at MAIN.
+9,45,IoT,anchored,fixed timestamp: mar 13 '20,"What is the power consumption of CQPA AHU 1 on mar 13 '20, site MAIN?"
+10,400,Workorder,anchored,fixed year: 2017,Get the work order of equipment CWC04013 for year 2017.
+11,405,Workorder,anchored,fixed time period: June 2020,"Get all the events of equipment CWC04009 for the June of 2020 and provide a summary based on the event group for work order, alert, and anomaly."
+12,502,multiagent,anchored,fixed week: 2020-04-27,What is the forecast for 'Chiller 9 Condenser Water Flow' in the week of 2020-04-27 based on data from the MAIN site?
+13,506,multiagent,anchored,fixed week: 2020-04-27,Is there any anomaly detected in Chiller 9's Condenser Water Flow in the week of 2020-04-27 at MAIN?
+14,41,IoT,volatile,'latest' marker — time-sensitive snapshot,What was the latest supply humidity from CQPA AHU 1 at site MAIN on sept 3 2015? return in a file
+15,413,Workorder,volatile,'current date' marker — relative to now,"Assuming that the current date is 2018-01-02, can you predict next work order probability for me for equipment CWC04009 using predict_next_work_order_probability function?"
+16,420,Workorder,volatile,'today' marker — time-sensitive,"Assume today is early of July 2020, I would like to review the performance of chiller 9 with equipment ID CWC04009 for June 2020 and track any anomalies or operation violations as alerts."
+17,46,IoT,relative,'last week' relative to today,retrieve the supply temperature data recorded last week for Chiller 3 (MAIN site)?
+18,504,multiagent,relative,'next week' relative to today,Can you forecast Chiller 6's performance for next week based on the data from 2020-04-27 at the MAIN site?
+19,511,multiagent,relative,'next week' relative to today,Can you predict Chiller 9's energy usage for next week based on data from the week of 2020-04-27 at MAIN?
+20,516,multiagent,relative,'next week' relative to today,What's the forecast for Chiller 6's future energy consumption for next week based on data from the week of 2020-04-27 at MAIN?
