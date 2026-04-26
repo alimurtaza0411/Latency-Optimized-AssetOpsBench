@@ -1,0 +1,51 @@
+{
+  "seed": 42,
+  "source": "asteria_eval/data/all_utterance.jsonl",
+  "method": "manual_curation",
+  "counts": {
+    "paraphrase": 19,
+    "hard_negative": 22,
+    "easy_negative": 50,
+    "volatile_repeat": 6,
+    "total": 97
+  },
+  "expected_distribution": {
+    "HIT": 19,
+    "MISS": 78
+  },
+  "paraphrase_kind_breakdown": {
+    "verbatim": 2,
+    "site_added": 14,
+    "reworded": 3
+  },
+  "hard_negative_kind_breakdown": {
+    "different_asset": 2,
+    "different_specificity": 1,
+    "different_param": 1,
+    "different_operation": 1,
+    "different_time": 2,
+    "different_metric": 5,
+    "different_sensor_set": 3,
+    "different_sensor": 1,
+    "different_site": 1,
+    "different_feature": 2,
+    "different_model": 3
+  },
+  "files": {
+    "unified": "asteria_eval/data/asteria_eval_pairs.csv",
+    "positives": "asteria_eval/data/asteria_eval_positives.csv",
+    "hard_negatives": "asteria_eval/data/asteria_eval_hard_negatives.csv",
+    "easy_negatives": "asteria_eval/data/asteria_eval_easy_negatives.csv",
+    "volatile": "asteria_eval/data/asteria_eval_volatile.csv"
+  },
+  "metric_definitions": {
+    "TP": "expected=HIT, actual=HIT  \u2192 cache correctly served paraphrase",
+    "FP": "expected=MISS, actual=HIT \u2192 cache served wrong / stale answer",
+    "FN": "expected=HIT, actual=MISS \u2192 cache missed an obvious paraphrase",
+    "TN": "expected=MISS, actual=MISS \u2192 cache correctly skipped",
+    "precision": "TP / (TP + FP)",
+    "recall": "TP / (TP + FN)",
+    "f1": "2 \u00b7 P \u00b7 R / (P + R)",
+    "false_positive_rate": "FP / (FP + TN)"
+  }
+}
