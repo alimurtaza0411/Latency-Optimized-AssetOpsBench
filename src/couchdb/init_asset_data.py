@@ -31,9 +31,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _SCRIPT_DIR = os.path.dirname(__file__)
-_DEFAULT_DATA_FILE = os.path.join(
-    _SCRIPT_DIR, "sample_data", "iot", "chiller6_june2020_sensordata_couchdb.json"
-)
+_REPO_ROOT = os.path.abspath(os.path.join(_SCRIPT_DIR, "..", ".."))
+_DEFAULT_DATA_FILE = os.path.join(_REPO_ROOT, "main.json")
 
 COUCHDB_URL = os.environ.get("COUCHDB_URL", "http://localhost:5984")
 COUCHDB_USERNAME = os.environ.get("COUCHDB_USERNAME", "admin")
@@ -122,7 +121,12 @@ def main() -> None:
         sys.exit(1)
 
     with open(args.data_file) as f:
-        docs = json.load(f)
+        raw = json.load(f)
+
+    # Support both a plain array and CouchDB export format {"docs": [...]}
+    docs = raw.get("docs", raw) if isinstance(raw, dict) else raw
+    # Strip _rev fields — they are CouchDB export artifacts that break re-import
+    docs = [{k: v for k, v in d.items() if k != "_rev"} for d in docs]
 
     if not isinstance(docs, list) or not docs:
         logger.error("Expected a non-empty JSON array in %s", args.data_file)

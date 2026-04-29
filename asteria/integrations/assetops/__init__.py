@@ -4,10 +4,8 @@ from .full_asteria_adapter import (
     build_asteria_cache_stack,
     compose_stored_answer_from_steps,
 )
-from .query_intent_cache import QueryIntentCache
 
 __all__ = [
-    "QueryIntentCache",
     "build_asteria_cache_stack",
     "compose_stored_answer_from_steps",
 ]

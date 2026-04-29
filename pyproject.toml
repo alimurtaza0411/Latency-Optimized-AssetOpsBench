@@ -5,6 +5,9 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/agent", "src/llm", "src/servers", "asteria"]
 
+[tool.hatch.build.targets.wheel.sources]
+src = ""
+
 [project]
 name = "assetopsbench-mcp"
 version = "0.1.0"
@@ -27,6 +30,9 @@ dependencies = [
     "python-dotenv>=1.0",
     "scipy>=1.10.0",
     "datasets>=4.8.4",
+    "torch",
+    "sentence-transformers>=5.4.1",
+    "faiss-cpu>=1.13.2",
 ]
 
 [project.scripts]
@@ -69,4 +75,3 @@ norecursedirs = ["src/tmp"]
 filterwarnings = [
     "ignore:Core Pydantic V1 functionality:UserWarning",
 ]
-
