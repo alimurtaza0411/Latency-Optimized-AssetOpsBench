@@ -20,6 +20,7 @@ LRUSemanticCache / LFUSemanticCache — eviction policy ablations
 
 from __future__ import annotations
 
+import datetime
 import time
 from collections import defaultdict
 from typing import Any, Dict, List, Optional, Tuple
@@ -127,7 +128,6 @@ class AsteriaCache:
         tau_lsm: float = DEFAULT_CONFIG.tau_lsm,
         enable_prefetch: bool = True,
         enable_temporal_bucketing: bool = DEFAULT_CONFIG.enable_temporal_bucketing,
-        t3_freshness_threshold_s: float = DEFAULT_CONFIG.t3_freshness_threshold_s,
     ):
         self.emb_model = embedding_model
         self.judger = judger
@@ -145,7 +145,7 @@ class AsteriaCache:
         self.total_api_cost: float = 0.0
         self.total_api_calls: int = 0
         self.total_cache_hits: int = 0
-        self.total_t3_bypasses: int = 0
+        self.total_volatile_bypasses: int = 0
         self.latency_log: List[float] = []
         self._prefetch_store: Dict[str, str] = {}
 
@@ -155,24 +155,30 @@ class AsteriaCache:
         self,
         query: str,
         ann_only: bool = False,
+        now: Optional["datetime.datetime"] = None,
     ) -> Tuple[Optional[str], dict]:
         """
-        Input:  query (str), ann_only (bool — skip judger for ablation)
+        Input:  query (str), ann_only (bool — skip judger for ablation),
+                now (datetime, optional — simulated wall clock used by the
+                temporal classifier when resolving relative phrases like
+                'yesterday' or 'last week'.  Defaults to real wall clock.)
         Output: (cached_answer | None, debug_dict)
 
-        T3 queries are immediately bypassed (no embedding, no Sine search).
-        T1/T2 queries proceed through the full pipeline with temporal
-        context forwarded to the Judger.
+        VOLATILE queries are immediately bypassed (no embedding, no Sine search).
+        ANCHORED / STATIC queries proceed through the full pipeline with
+        temporal context forwarded to the Judger.
         """
         # ── Temporal classification ──────────────────────────────────────
-        query_tag = temporal_classify(query) if self.enable_temporal else None
+        query_tag = (
+            temporal_classify(query, now=now) if self.enable_temporal else None
+        )
 
-        # ── T3 bypass: skip cache entirely for real-time queries ─────────
-        if query_tag is not None and query_tag.bucket == TemporalBucket.REALTIME:
-            self.total_t3_bypasses += 1
+        # ── VOLATILE bypass: skip cache entirely for live/current queries ──
+        if query_tag is not None and query_tag.bucket == TemporalBucket.VOLATILE:
+            self.total_volatile_bypasses += 1
             return None, {
                 "hit": False,
-                "temporal_bucket": "T3",
+                "temporal_bucket": "VOLATILE",
                 "temporal_bypass": True,
                 "cache_lookup_ms": 0.0,
             }
@@ -233,7 +239,7 @@ class AsteriaCache:
         answer: str,
         cost: float = DEFAULT_CONFIG.remote_cost_per_call,
         latency_ms: float = DEFAULT_CONFIG.remote_latency_ms,
-    ):
+    ) -> dict:
         """
         Insert a new SE after a real API call.
         Staticity predicted by judger. Volatile SEs are auto-discarded.
@@ -247,14 +253,20 @@ class AsteriaCache:
         self.total_api_calls += 1
         self.latency_log.append(latency_ms)
 
-        # Step 1: Temporal classification — T3 queries are never cached.
-        temporal_bucket = "T1"
+        # Step 1: Temporal classification — VOLATILE queries are never cached.
+        temporal_bucket = "STATIC"
         window_start = None
         window_end = None
         if self.enable_temporal:
             tag = temporal_classify(query)
-            if tag.bucket == TemporalBucket.REALTIME:
-                return  # Skip caching entirely for real-time data.
+            if tag.bucket == TemporalBucket.VOLATILE:
+                return {
+                    "inserted": False,
+                    "skip_reason": "volatile_query",
+                    "temporal_bucket": tag.bucket.value,
+                    "staticity": None,
+                    "ttl_hours": None,
+                }
             temporal_bucket = tag.bucket.value
             if tag.time_window is not None:
                 window_start = tag.time_window.start
@@ -265,14 +277,20 @@ class AsteriaCache:
 
         # Step 3: Discard volatile data
         if staticity <= DEFAULT_CONFIG.staticity_volatile:
-            return
+            return {
+                "inserted": False,
+                "skip_reason": "low_staticity",
+                "temporal_bucket": temporal_bucket,
+                "staticity": staticity,
+                "ttl_hours": None,
+            }
 
         # Step 4: TTL — adjusted by temporal bucket
-        if temporal_bucket == "T2":
-            # Historical data is permanently valid for its window.
+        if temporal_bucket == "ANCHORED":
+            # Time-bounded data is valid for its window indefinitely.
             ttl_seconds = 3600.0 * 24 * 365  # 1 year
         else:
-            # T1: original staticity-based TTL
+            # STATIC: paper-style staticity-based TTL
             ttl_seconds = 3600.0 * (staticity / 10.0) * 24 * 30
 
         # Step 5: Evict if needed, then insert
@@ -293,6 +311,15 @@ class AsteriaCache:
         )
         fid = self.sine.add(se)
         self.ses[str(fid)] = se
+        return {
+            "inserted": True,
+            "skip_reason": None,
+            "temporal_bucket": temporal_bucket,
+            "staticity": staticity,
+            "ttl_hours": round(ttl_seconds / 3600.0, 2),
+            "time_window_start": window_start,
+            "time_window_end": window_end,
+        }
 
     # ── LCFU eviction (Algorithm 2) ──────────────────────────────────────
 
@@ -324,7 +351,7 @@ class AsteriaCache:
             "ses_in_cache": len(self.ses),
         }
         if self.enable_temporal:
-            summary["t3_bypasses"] = self.total_t3_bypasses
+            summary["volatile_bypasses"] = self.total_volatile_bypasses
         return summary
 
 

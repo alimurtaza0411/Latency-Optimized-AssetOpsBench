@@ -21,7 +21,6 @@ Quick start:
 """
 
 from .config import AsteriaConfig, DEFAULT_CONFIG
-from .integrations.assetops import QueryIntentCache
 from .temporal_classifier import (
     TemporalBucket,
     TemporalTag,
@@ -57,7 +56,6 @@ except ModuleNotFoundError:  # pragma: no cover
 __all__ = [
     "AsteriaConfig",
     "DEFAULT_CONFIG",
-    "QueryIntentCache",
     "TemporalBucket",
     "TemporalTag",
     "TimeWindow",

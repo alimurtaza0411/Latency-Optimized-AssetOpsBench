@@ -39,10 +39,10 @@ class TemporalContext:
     Created by AsteriaCache.lookup() from the query's TemporalTag and
     the candidate SemanticElement's stored temporal fields.
     """
-    query_bucket: str                        # "T1" or "T2"  (T3 bypasses cache)
-    query_window_start: Optional[str] = None # ISO str, T2 only
-    query_window_end: Optional[str] = None   # ISO str, T2 only
-    cached_bucket: str = "T1"
+    query_bucket: str                        # "STATIC", "RELATIVE", or "ANCHORED"  (VOLATILE bypasses cache)
+    query_window_start: Optional[str] = None # ISO str, ANCHORED only
+    query_window_end: Optional[str] = None   # ISO str, ANCHORED only
+    cached_bucket: str = "STATIC"
     cached_window_start: Optional[str] = None
     cached_window_end: Optional[str] = None
     cached_created_at: Optional[float] = None  # epoch seconds
@@ -106,13 +106,10 @@ class SemanticJudger:
         """Build a relevance-scoring instruction, enriched with temporal
         context when available.
 
-        T1 (Static/Metadata):
-            Neutral — returns the vanilla base prompt.  We deliberately
-            do NOT bias the model toward acceptance because a
-            misclassified time-sensitive query would get a false hit.
-            The staticity-based TTL already protects true static data.
+        STATIC:
+            Neutral — returns the vanilla base prompt.
 
-        T2 (Historical/Bounded-Window):
+        ANCHORED (Time-Bounded):
             Explicitly state both time windows and the cached-answer
             timestamp so the model can compare them.  The model must
             say 'no' when the windows don't align.
@@ -124,16 +121,13 @@ class SemanticJudger:
         if ctx is None:
             return base
 
-        # ── T1 (Static / Metadata) ───────────────────────────────────
-        # Neutral: use the vanilla prompt.  We do NOT bias the model
-        # toward acceptance because a misclassified time-sensitive query
-        # would otherwise get a false hit.  The staticity-based TTL at
-        # insertion time already provides a safety net for true T1 data.
-        if ctx.query_bucket == "T1":
+        # ── STATIC ──────────────────────────────────────────────────
+        # Neutral: use the vanilla prompt.
+        if ctx.query_bucket == "STATIC":
             return base
 
-        # ── T2 (Historical / Bounded-Time-Window) ────────────────────
-        if ctx.query_bucket == "T2":
+        # ── ANCHORED (Time-Bounded) ─────────────────────────────────
+        if ctx.query_bucket == "ANCHORED":
             parts = [base]
             parts.append(
                 " This is a time-bounded historical data query. "

@@ -156,6 +156,7 @@ dependencies = [
     { name = "claude-agent-sdk" },
     { name = "couchdb3" },
     { name = "datasets" },
+    { name = "faiss-cpu" },
     { name = "fastmcp" },
     { name = "litellm" },
     { name = "mcp", extra = ["cli"] },
@@ -168,6 +169,8 @@ dependencies = [
     { name = "pyyaml" },
     { name = "requests" },
     { name = "scipy" },
+    { name = "sentence-transformers" },
+    { name = "torch" },
 ]
 
 [package.dev-dependencies]
@@ -192,6 +195,7 @@ requires-dist = [
     { name = "claude-agent-sdk", specifier = ">=0.0.14" },
     { name = "couchdb3", specifier = ">=2.0.2" },
     { name = "datasets", specifier = ">=4.8.4" },
+    { name = "faiss-cpu", specifier = ">=1.13.2" },
     { name = "fastmcp", specifier = ">=2.14.5" },
     { name = "litellm", specifier = "==1.81.13" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.26.0" },
@@ -204,6 +208,8 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "scipy", specifier = ">=1.10.0" },
+    { name = "sentence-transformers", specifier = ">=5.4.1" },
+    { name = "torch" },
 ]
 
 [package.metadata.requires-dev]

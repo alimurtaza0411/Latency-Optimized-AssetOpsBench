@@ -144,6 +144,16 @@ class Executor:
         3. Call the LLM to generate tool arguments from the task and prior results.
         4. Call the tool and return its result.
         """
+        if not step.tool or step.tool.lower() in ("none", "null"):
+            return StepResult(
+                step_number=step.step_number,
+                task=step.task,
+                server=step.server,
+                response=step.expected_output,
+                tool=step.tool,
+                tool_args=step.tool_args,
+            )
+
         server_path = self._server_paths.get(step.server)
         if server_path is None:
             return StepResult(
@@ -155,14 +165,6 @@ class Executor:
                     f"Unknown server '{step.server}'. "
                     f"Registered servers: {list(self._server_paths)}"
                 ),
-            )
-
-        if not step.tool or step.tool.lower() in ("none", "null"):
-            return StepResult(
-                step_number=step.step_number,
-                task=step.task,
-                server=step.server,
-                response=step.expected_output,
                 tool=step.tool,
                 tool_args=step.tool_args,
             )

@@ -30,9 +30,7 @@ class AsteriaConfig:
     markov_theta: float = 0.30         # prefetch confidence threshold
 
     # Temporal bucketing
-    enable_temporal_bucketing: bool = True   # enable temporal gate on cache hits
-    t3_freshness_threshold_s: float = 60.0  # max staleness for T3 (real-time) hits
-    t2_window_match_strict: bool = True     # require exact window match for T2
+    enable_temporal_bucketing: bool = True   # enable VOLATILE/ANCHORED/STATIC gate
 
     # Remote API simulation
     remote_latency_ms: float = 350.0   # simulated cross-region latency
