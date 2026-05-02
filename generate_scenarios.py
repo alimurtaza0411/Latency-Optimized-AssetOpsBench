@@ -342,7 +342,17 @@ def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="Generate paraphrase + synthetic-window scenarios from all_utterance.csv.",
     )
-    p.add_argument("--input",  type=Path, default=INPUT_CSV,  help="Input CSV path.")
+    p.add_argument(
+        "--input",
+        type=Path,
+        nargs="+",
+        default=[INPUT_CSV],
+        help=(
+            "One or more input CSV paths.  When multiple are given they are "
+            "concatenated in order before processing — useful for mixing "
+            "temporal and static utterances at controlled ratios."
+        ),
+    )
     p.add_argument("--output", type=Path, default=OUTPUT_CSV, help="Output CSV path.")
     p.add_argument(
         "--types",
@@ -374,8 +384,9 @@ def _build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     args = _build_parser().parse_args()
 
-    if not args.input.exists():
-        sys.exit(f"Error: input file not found — {args.input}")
+    for p in args.input:
+        if not p.exists():
+            sys.exit(f"Error: input file not found — {p}")
 
     if MODEL.startswith("watsonx/"):
         missing = [v for v in ("WATSONX_APIKEY", "WATSONX_PROJECT_ID")
@@ -387,7 +398,11 @@ def main() -> None:
             )
 
     rng = random.Random(args.seed)
-    rows = _load_rows(args.input)
+    rows: list[dict] = []
+    for p in args.input:
+        chunk = _load_rows(p)
+        rows.extend(chunk)
+        print(f"  loaded {len(chunk)} rows from {p}")
     if args.types:
         keep = {t.strip() for t in args.types.split(",")}
         rows = [r for r in rows if r["type"] in keep]

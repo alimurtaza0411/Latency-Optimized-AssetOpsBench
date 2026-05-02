@@ -173,6 +173,21 @@ class AsteriaCache:
             temporal_classify(query, now=now) if self.enable_temporal else None
         )
 
+        # Windowless-ANCHORED downgrade: when the classifier flagged the
+        # query as ANCHORED (temporal phrase present) but couldn't extract
+        # a concrete window (e.g. bare year, "last week of 2020", "June 2020"),
+        # treat it as STATIC for caching purposes.  Without a window the
+        # window-overlap pre-filter rejects every candidate, so leaving it
+        # ANCHORED guarantees a miss.  STATIC fallback at least lets
+        # semantic similarity find paraphrase hits.
+        if (
+            query_tag is not None
+            and query_tag.bucket == TemporalBucket.ANCHORED
+            and query_tag.time_window is None
+        ):
+            from .temporal_classifier import TemporalTag
+            query_tag = TemporalTag(bucket=TemporalBucket.STATIC)
+
         # ── VOLATILE bypass: skip cache entirely for live/current queries ──
         if query_tag is not None and query_tag.bucket == TemporalBucket.VOLATILE:
             self.total_volatile_bypasses += 1
@@ -239,15 +254,18 @@ class AsteriaCache:
         answer: str,
         cost: float = DEFAULT_CONFIG.remote_cost_per_call,
         latency_ms: float = DEFAULT_CONFIG.remote_latency_ms,
+        now: Optional["datetime.datetime"] = None,
     ) -> dict:
         """
         Insert a new SE after a real API call.
-        Staticity predicted by judger. Volatile SEs are auto-discarded.
-        T3 (real-time) queries are never cached.
-        Temporal metadata attached for T1/T2 entries.
+        Staticity predicted by judger.  VOLATILE entries are auto-discarded.
+        ANCHORED entries with concrete windows bypass the staticity gate
+        because the window itself bounds their validity.
 
-        Input:  query, answer, cost, latency_ms
-        Output: None (SE stored internally or discarded)
+        Input:  query, answer, cost, latency_ms,
+                now (datetime, optional — simulated wall clock; same role
+                as in lookup()).
+        Output: dict with insertion outcome.
         """
         self.total_api_cost += cost
         self.total_api_calls += 1
@@ -258,7 +276,7 @@ class AsteriaCache:
         window_start = None
         window_end = None
         if self.enable_temporal:
-            tag = temporal_classify(query)
+            tag = temporal_classify(query, now=now)
             if tag.bucket == TemporalBucket.VOLATILE:
                 return {
                     "inserted": False,
@@ -267,16 +285,35 @@ class AsteriaCache:
                     "staticity": None,
                     "ttl_hours": None,
                 }
-            temporal_bucket = tag.bucket.value
-            if tag.time_window is not None:
-                window_start = tag.time_window.start
-                window_end = tag.time_window.end
+            # Windowless-ANCHORED downgrade — see lookup() for rationale.
+            # Without a concrete window the entry can never be hit by the
+            # ANCHORED window-overlap path, AND the staticity gate kills
+            # ephemeral data answers.  Demote to STATIC so the standard
+            # staticity-based TTL applies.
+            if tag.bucket == TemporalBucket.ANCHORED and tag.time_window is None:
+                temporal_bucket = "STATIC"
+            else:
+                temporal_bucket = tag.bucket.value
+                if tag.time_window is not None:
+                    window_start = tag.time_window.start
+                    window_end = tag.time_window.end
 
         # Step 2: Predict staticity
         staticity = self.judger.staticity_score(query, answer)
 
-        # Step 3: Discard volatile data
-        if staticity <= DEFAULT_CONFIG.staticity_volatile:
+        # Step 3: Discard ephemeral content — but ANCHORED entries with a
+        # concrete window are exempt: the window bounds their validity, so
+        # even an ephemeral-looking answer (events, alerts) is cacheable
+        # for that window.
+        anchored_with_window = (
+            temporal_bucket == "ANCHORED"
+            and window_start is not None
+            and window_end is not None
+        )
+        if (
+            staticity <= DEFAULT_CONFIG.staticity_volatile
+            and not anchored_with_window
+        ):
             return {
                 "inserted": False,
                 "skip_reason": "low_staticity",
