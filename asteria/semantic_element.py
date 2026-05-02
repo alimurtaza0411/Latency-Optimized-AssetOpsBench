@@ -37,6 +37,11 @@ class SemanticElement:
     created_at:  float = field(default_factory=time.time)
     ttl_seconds: float = DEFAULT_CONFIG.default_ttl
 
+    # Temporal bucketing metadata
+    temporal_bucket: str = "STATIC"                      # "STATIC", "ANCHORED", or "RELATIVE"
+    time_window_start: str | None = None                 # ISO string, ANCHORED only
+    time_window_end: str | None = None                   # ISO string, ANCHORED only
+
     # Internal FAISS tracking
     faiss_id:    int   = -1
 

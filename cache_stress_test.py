@@ -237,12 +237,12 @@ class RequestResult:
     scenario_name: str
     query: str
     total_s: float | None
+    asteria_lookup_s: float | None
     discovery_s: float | None
     planning_s: float | None
     execution_s: float | None
     summarization_s: float | None
-    query_cache_hit: bool = False
-    query_cache_mode: str = ""
+    asteria_hit: bool = False
     error: str | None = None
 
 
@@ -288,9 +288,7 @@ async def run_workload(
     summary_max_chars: int,
     step_response_max_chars: int,
     server_paths: dict[str, str] | None,
-    query_cache_enabled: bool,
-    query_cache_threshold: float,
-    query_cache_ttl_seconds: float,
+    asteria_enabled: bool,
     llm_retries: int,
     retry_delay_s: float,
     continue_on_error: bool,
@@ -298,9 +296,7 @@ async def run_workload(
     runner = ProfiledRunner(
         model_id=model_id,
         server_paths=server_paths,
-        query_cache_enabled=query_cache_enabled,
-        query_cache_threshold=query_cache_threshold,
-        query_cache_ttl_seconds=query_cache_ttl_seconds,
+        asteria_enabled=asteria_enabled,
         summarize=include_summary,
         summary_max_chars=summary_max_chars,
         step_response_max_chars=step_response_max_chars,
@@ -318,12 +314,12 @@ async def run_workload(
                         scenario_name=item.scenario_name,
                         query=item.query,
                         total_s=timing.total_s,
+                        asteria_lookup_s=timing.asteria_lookup_s,
                         discovery_s=timing.discovery_s,
                         planning_s=timing.planning_s,
                         execution_s=timing.execution_s,
                         summarization_s=timing.summarization_s,
-                        query_cache_hit=timing.query_cache_hit,
-                        query_cache_mode=timing.query_cache_mode,
+                        asteria_hit=timing.asteria_hit,
                     )
                 )
                 break
@@ -339,6 +335,7 @@ async def run_workload(
                             scenario_name=item.scenario_name,
                             query=item.query,
                             total_s=None,
+                            asteria_lookup_s=None,
                             discovery_s=None,
                             planning_s=None,
                             execution_s=None,
@@ -356,7 +353,7 @@ def summarize(label: str, results: list[RequestResult]) -> dict[str, Any]:
     failures = [r for r in results if r.error is not None]
     totals = [r.total_s for r in successes if r.total_s is not None]
     execs = [r.execution_s for r in successes if r.execution_s is not None]
-    query_hits = sum(1 for r in results if r.query_cache_hit)
+    asteria_hits = sum(1 for r in results if r.asteria_hit)
     return {
         "label": label,
         "requests": len(results),
@@ -366,8 +363,8 @@ def summarize(label: str, results: list[RequestResult]) -> dict[str, Any]:
         "total_median_s": median(totals) if totals else 0.0,
         "total_p95_s": sorted(totals)[int(0.95 * (len(totals) - 1))] if totals else 0.0,
         "execution_avg_s": mean(execs) if execs else 0.0,
-        "query_cache_hits": query_hits,
-        "query_cache_hit_rate": (query_hits / len(results)) if results else 0.0,
+        "asteria_hits": asteria_hits,
+        "asteria_hit_rate": (asteria_hits / len(results)) if results else 0.0,
     }
 
 
@@ -380,8 +377,8 @@ def print_summary_table(summary: dict[str, Any]) -> None:
     print(f"  total median(s): {summary['total_median_s']:.3f}")
     print(f"  total p95 (s)  : {summary['total_p95_s']:.3f}")
     print(f"  exec avg (s)   : {summary['execution_avg_s']:.3f}")
-    print(f"  query hits     : {summary['query_cache_hits']}")
-    print(f"  query hit rate : {summary['query_cache_hit_rate']:.1%}")
+    print(f"  asteria hits   : {summary['asteria_hits']}")
+    print(f"  asteria rate   : {summary['asteria_hit_rate']:.1%}")
 
 
 def write_json(path: Path, payload: dict[str, Any]) -> None:
@@ -400,23 +397,11 @@ def _build_parser() -> argparse.ArgumentParser:
         "--mode",
         choices=["baseline", "cached", "both"],
         default="both",
-        help="Run baseline only, query-cache only, or both for comparison.",
+        help="Run baseline only, Asteria cache only, or both for comparison.",
     )
     p.add_argument("--requests", type=int, default=30, help="Number of requests in workload.")
     p.add_argument("--zipf-s", type=float, default=1.1, help="Zipf exponent.")
     p.add_argument("--seed", type=int, default=42, help="Random seed.")
-    p.add_argument(
-        "--query-cache-threshold",
-        type=float,
-        default=0.92,
-        help="Similarity threshold for query-intent cache.",
-    )
-    p.add_argument(
-        "--query-cache-ttl-seconds",
-        type=float,
-        default=1800.0,
-        help="TTL for query-intent cache entries.",
-    )
     p.add_argument(
         "--out-json",
         default="tmp/cache_stress_report.json",
@@ -484,8 +469,6 @@ async def _main(args: argparse.Namespace) -> None:
             "zipf_s": args.zipf_s,
             "seed": args.seed,
             "model_id": args.model_id,
-            "query_cache_threshold": args.query_cache_threshold,
-            "query_cache_ttl_seconds": args.query_cache_ttl_seconds,
             "include_summary": args.include_summary,
             "summary_max_chars": args.summary_max_chars,
             "step_response_max_chars": args.step_response_max_chars,
@@ -507,9 +490,7 @@ async def _main(args: argparse.Namespace) -> None:
         baseline_results = await run_workload(
             workload=workload,
             model_id=args.model_id,
-            query_cache_enabled=False,
-            query_cache_threshold=args.query_cache_threshold,
-            query_cache_ttl_seconds=args.query_cache_ttl_seconds,
+            asteria_enabled=False,
             include_summary=args.include_summary,
             summary_max_chars=args.summary_max_chars,
             step_response_max_chars=args.step_response_max_chars,
@@ -529,9 +510,7 @@ async def _main(args: argparse.Namespace) -> None:
         cached_results = await run_workload(
             workload=workload,
             model_id=args.model_id,
-            query_cache_enabled=True,
-            query_cache_threshold=args.query_cache_threshold,
-            query_cache_ttl_seconds=args.query_cache_ttl_seconds,
+            asteria_enabled=True,
             include_summary=args.include_summary,
             summary_max_chars=args.summary_max_chars,
             step_response_max_chars=args.step_response_max_chars,

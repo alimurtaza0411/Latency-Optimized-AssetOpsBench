@@ -2,8 +2,8 @@
 
 Stubs MCP transport (_list_tools / _call_tool) and the LLM backend so the full
 plan -> execute -> summarize loop can be exercised without network, CouchDB, or
-model downloads. Verifies the lightweight query cache and the full Asteria
-query-level cache under the runner.
+model downloads. Verifies baseline execution plus Asteria query-level caching
+under the runner.
 """
 
 from __future__ import annotations
@@ -105,44 +105,13 @@ async def test_baseline_runner_executes_plan_without_cache():
     assert timing.steps[0].server == "iot"
     assert timing.steps[0].tool == "assets"
     assert timing.steps[0].success is True
-    assert timing.query_cache_summary is None
     assert timing.asteria_summary is None
+    assert timing.asteria_lookup_s == 0.0
     # Exactly one tool invocation.
     assert call_tool.await_count == 1
 
 
-# ── query-intent cache short-circuit ──────────────────────────────────────────
-
-
-@pytest.mark.anyio
-async def test_query_cache_short_circuits_second_run():
-    runner = _make_runner(query_cache_enabled=True)
-
-    list_tools = AsyncMock(return_value=_MOCK_IOT_TOOLS)
-    call_tool = AsyncMock(return_value=_TOOL_RESPONSE)
-    _wire_mocks(runner, list_tools=list_tools, call_tool=call_tool)
-
-    _install_llm(
-        runner,
-        [
-            _PLAN_ONE_IOT_STEP, '{"site_name": "MAIN"}',
-            # Second run hits the query cache — planner + arg LLM NOT called.
-        ],
-    )
-
-    t1 = await runner.run("List assets at site MAIN")
-    t2 = await runner.run("List assets at site MAIN")
-
-    assert t1.query_cache_hit is False
-    assert len(t1.steps) == 1
-    assert t2.query_cache_hit is True
-    assert t2.discovery_s == 0.0
-    assert t2.planning_s == 0.0
-    assert t2.steps == []
-    assert call_tool.await_count == 1
-
-
-# ── full_asteria mode with a stubbed cache ────────────────────────────────────
+# ── Asteria mode with a stubbed cache ─────────────────────────────────────────
 
 
 class _StubAsteriaCache:
@@ -152,14 +121,21 @@ class _StubAsteriaCache:
         self.store: dict[str, str] = {}
         self.inserts: int = 0
 
-    def lookup(self, key):  # noqa: ANN001
+    def lookup(self, key, now=None):  # noqa: ANN001
         if key in self.store:
             return self.store[key], {"hit": True, "source": "sine"}
         return None, {"hit": False, "source": None}
 
-    def insert(self, key, value, cost=0.0, latency_ms=0.0):  # noqa: ANN001
+    def insert(self, key, value, cost=0.0, latency_ms=0.0, now=None):  # noqa: ANN001
         self.store[key] = value
         self.inserts += 1
+        return {
+            "inserted": True,
+            "skip_reason": None,
+            "temporal_bucket": "STATIC",
+            "staticity": 9.0,
+            "ttl_hours": 720.0,
+        }
 
     def stats_summary(self) -> dict:
         return {
@@ -172,8 +148,8 @@ class _StubAsteriaCache:
 
 
 @pytest.mark.anyio
-async def test_full_asteria_query_cache_hits_on_repeat():
-    """Inject a stub AsteriaCache to exercise the full-asteria branch of timer."""
+async def test_asteria_query_cache_hits_on_repeat():
+    """Inject a stub AsteriaCache to exercise the pre-orchestrator Asteria path."""
     runner = _make_runner()
     stub = _StubAsteriaCache()
     runner._asteria_cache = stub
@@ -195,30 +171,67 @@ async def test_full_asteria_query_cache_hits_on_repeat():
     t2 = await runner.run("List assets at site MAIN")
 
     # Run 1: miss at the query layer, execute normally, then store the result.
-    assert t1.asteria_query_hit is False
+    assert t1.asteria_hit is False
     assert len(t1.steps) == 1
+    assert t1.asteria_lookup_s > 0.0
+    assert t1.asteria_insert_s > 0.0
     # Run 2: query-level Asteria cache returns the stored answer pre-planner.
-    assert t2.asteria_query_hit is True
+    assert t2.asteria_hit is True
     assert t2.steps == []
     assert t2.discovery_s == 0.0
     assert t2.planning_s == 0.0
+    assert t2.asteria_lookup_s > 0.0
+    assert t2.asteria_insert_s == 0.0
     assert call_tool.await_count == 1
     assert t1.asteria_summary is not None
     assert t2.asteria_summary is not None
 
 
-# ── mutual-exclusion CLI guard ────────────────────────────────────────────────
-
-
-def test_cli_rejects_full_asteria_with_query_cache(capsys):
-    """timer.main raises SystemExit when --full-asteria + --query-cache are combined."""
-    import asyncio
-
+def test_cli_accepts_asteria_alias_flag():
     parser = timer._build_parser()
-    args = parser.parse_args(["--full-asteria", "--query-cache", "Q"])
-    with pytest.raises(SystemExit) as excinfo:
-        asyncio.run(timer._main(args))
-    assert "full-asteria" in str(excinfo.value).lower()
+    args = parser.parse_args(["--full-asteria", "Q"])
+    assert args.asteria is True
+
+
+def test_cli_accepts_compare_and_sampling_flags():
+    parser = timer._build_parser()
+    args = parser.parse_args(
+        [
+            "--compare-asteria",
+            "--csv",
+            "all_utterance.csv",
+            "--sample-count",
+            "2",
+            "--sample-seed",
+            "7",
+        ]
+    )
+    assert args.compare_asteria is True
+    assert args.csv == Path("all_utterance.csv")
+    assert args.sample_count == 2
+
+
+def test_describe_temporal_policy_distinguishes_query_shapes():
+    static_view = timer._describe_temporal_policy("What assets are at site MAIN?")
+    anchored_explicit_view = timer._describe_temporal_policy(
+        "Show Chiller 6 data from 2020-06-01 00:00 to 2020-06-01 01:00"
+    )
+    anchored_relative_view = timer._describe_temporal_policy(
+        "Show Chiller 6 data from the last 2 hours"
+    )
+    volatile_view = timer._describe_temporal_policy(
+        "What is the current status of Chiller 6?"
+    )
+
+    assert static_view["display_tag"] == "STATIC"
+    assert anchored_explicit_view["display_tag"] == "ANCHORED"
+    assert anchored_explicit_view["asteria_bucket"] == "ANCHORED"
+    # Relative phrases are now resolved to ANCHORED with a concrete window.
+    assert anchored_relative_view["display_tag"] == "ANCHORED"
+    assert anchored_relative_view["asteria_bucket"] == "ANCHORED"
+    assert "time_window" in anchored_relative_view
+    assert volatile_view["display_tag"] == "VOLATILE"
+    assert volatile_view["asteria_bucket"] == "VOLATILE"
 
 
 # ── print_run + print_summary smoke tests ─────────────────────────────────────
