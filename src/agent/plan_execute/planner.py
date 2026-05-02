@@ -27,7 +27,7 @@ Available servers and tools:
 Output format — one block per step, exactly:
 
 #Task1: <task description>
-#Server1: <exact server name>
+#Server1: <exact server name, or "none" if no tool call is needed>
 #Tool1: <exact tool name, or "none" if no tool call is needed>
 #Dependency1: None
 #ExpectedOutput1: <what this step should produce>
@@ -53,7 +53,7 @@ _SERVER_RE = re.compile(r"#Server(\d+):\s*(.+)")
 _TOOL_RE = re.compile(r"#Tool(\d+):\s*(.+)")
 _DEP_RE = re.compile(r"#Dependency(\d+):\s*(.+)")
 _OUTPUT_RE = re.compile(r"#ExpectedOutput(\d+):\s*(.+)")
-_DEP_NUM_RE = re.compile(r"#S(\d+)")
+_DEP_NUM_RE = re.compile(r"#(?:S|Task)(\d+)")
 
 
 def parse_plan(raw: str) -> Plan:
