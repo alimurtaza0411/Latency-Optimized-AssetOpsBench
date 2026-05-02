@@ -122,17 +122,39 @@ class ProfiledRunner:
 
             self._asteria_cache = build_asteria_cache_stack()
 
-    async def run(self, question: str) -> RunTiming:
+            # Pre-pay PyTorch / Transformers JIT warmup on the judger now,
+            # not during the first user query.  Without this, the first row
+            # that produces ANN candidates is artificially charged ~30-50 s
+            # of kernel warmup and skews bench latencies dramatically.
+            try:
+                self._asteria_cache.judger.score("warmup query", "warmup answer")
+            except Exception:  # noqa: BLE001
+                pass
+
+    async def run(self, question: str, now=None) -> RunTiming:
+        """
+        Execute the plan-execute pipeline for `question`.
+
+        Parameters
+        ----------
+        question : str
+            The user query.
+        now : datetime.datetime | None
+            Simulated wall clock used by the temporal classifier when
+            resolving relative phrases.  Forwarded to AsteriaCache.lookup
+            and AsteriaCache.insert so seed and test runs over the same
+            CSV row see identical resolved windows.  None → real wall clock.
+        """
         from agent.plan_execute.models import StepResult
 
         timing = RunTiming(question=question)
-        timing.temporal_debug = _describe_temporal_policy(question)
+        timing.temporal_debug = _describe_temporal_policy(question, now=now)
         run_start = time.perf_counter()
 
         # ── 0. Asteria query-level lookup (Sine + judger + temporal logic) ───
         if self._asteria_cache is not None:
             t0 = time.perf_counter()
-            cached_answer, debug = self._asteria_cache.lookup(question)
+            cached_answer, debug = self._asteria_cache.lookup(question, now=now)
             timing.asteria_lookup_s = time.perf_counter() - t0
             timing.asteria_lookup_debug = _annotate_lookup_debug(debug, timing.temporal_debug)
             timing.asteria_summary = self._asteria_cache.stats_summary()
@@ -281,6 +303,7 @@ class ProfiledRunner:
                         body,
                         cost=DEFAULT_CONFIG.remote_cost_per_call,
                         latency_ms=(time.perf_counter() - run_start) * 1000.0,
+                        now=now,
                     )
                     timing.asteria_insert_s = time.perf_counter() - t0
             timing.asteria_summary = self._asteria_cache.stats_summary()
@@ -318,10 +341,10 @@ def _format_metadata(metadata: dict[str, str] | None) -> str | None:
     return " ".join(parts) if parts else None
 
 
-def _describe_temporal_policy(question: str) -> dict[str, Any]:
+def _describe_temporal_policy(question: str, now=None) -> dict[str, Any]:
     from asteria.temporal_classifier import classify as temporal_classify
 
-    tag = temporal_classify(question)
+    tag = temporal_classify(question, now=now)
     display_tag = tag.bucket.value  # VOLATILE / ANCHORED / STATIC
 
     policy = {
@@ -487,6 +510,16 @@ def _build_parser() -> argparse.ArgumentParser:
         help="The question to profile. Omit this when using CSV sampling.",
     )
     parser.add_argument(
+        "--now",
+        default=None,
+        metavar="ISO",
+        help=(
+            "Simulated wall clock for the temporal classifier "
+            "(ISO 8601, e.g. 2024-08-15T02:01:51).  Drives "
+            "RELATIVE→ANCHORED resolution in a reproducible way."
+        ),
+    )
+    parser.add_argument(
         "--model-id",
         default="watsonx/meta-llama/llama-3-3-70b-instruct",
         metavar="MODEL_ID",
@@ -641,7 +674,7 @@ async def _run_mode(
         for i in range(1, args.runs + 1):
             if args.runs > 1:
                 print(f"\nRun {i}/{args.runs}...", flush=True)
-            t = await runner.run(query_case.question)
+            t = await runner.run(query_case.question, now=getattr(args, "_parsed_now", None))
             t.question_metadata = query_case.metadata
             timings.append(t)
             print_run(t, run_index=i if args.runs > 1 else None)
@@ -664,11 +697,15 @@ async def _main(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    import datetime as _dt
     from dotenv import load_dotenv
     load_dotenv()
     parser = _build_parser()
     args = parser.parse_args()
     _validate_args(parser, args)
+    args._parsed_now = (
+        _dt.datetime.fromisoformat(args.now) if args.now else None
+    )
     asyncio.run(_main(args))
 
 

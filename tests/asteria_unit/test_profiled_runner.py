@@ -121,12 +121,12 @@ class _StubAsteriaCache:
         self.store: dict[str, str] = {}
         self.inserts: int = 0
 
-    def lookup(self, key):  # noqa: ANN001
+    def lookup(self, key, now=None):  # noqa: ANN001
         if key in self.store:
             return self.store[key], {"hit": True, "source": "sine"}
         return None, {"hit": False, "source": None}
 
-    def insert(self, key, value, cost=0.0, latency_ms=0.0):  # noqa: ANN001
+    def insert(self, key, value, cost=0.0, latency_ms=0.0, now=None):  # noqa: ANN001
         self.store[key] = value
         self.inserts += 1
         return {

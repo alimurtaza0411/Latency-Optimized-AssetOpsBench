@@ -4,6 +4,100 @@ End-to-end semantic caching layer for AssetOpsBench's plan-execute pipeline.
 Built on the Asteria paper (arXiv 2509.17360) with a temporal bucketing layer
 on top.
 
+## Setup — first-time reload
+
+Anyone cloning the `TemporalAsteriaCache` branch on a new machine needs:
+
+### Prerequisites
+
+- Python 3.12 (managed by `uv`)
+- `uv` package manager (`brew install uv` or [astral.sh/uv](https://docs.astral.sh/uv/))
+- Docker Desktop (for CouchDB)
+- WatsonX API credentials (via IBM Cloud)
+- ~10 GB disk for Qwen3 embedding + reranker models (auto-downloaded on first run)
+
+### One-time bootstrap
+
+```bash
+# 1. Clone + branch
+git clone https://github.com/alimurtaza0411/AssetOpsBench.git
+cd AssetOpsBench
+git checkout TemporalAsteriaCache
+
+# 2. Install Python deps (creates .venv automatically)
+uv sync
+
+# 3. Activate venv
+source .venv/bin/activate
+
+# 4. Configure secrets — copy template and fill in
+cp .env.example .env   # if .env.example exists; otherwise create .env manually
+```
+
+Required `.env` contents (replace placeholders with real values):
+
+```env
+# ── CouchDB (IoT/WO/Vibration MCP servers) ───────────────────────────────────
+COUCHDB_URL=http://localhost:5984
+IOT_DBNAME=chiller
+WO_DBNAME=workorder
+VIBRATION_DBNAME=vibration
+COUCHDB_USERNAME=admin
+COUCHDB_PASSWORD=<your-couchdb-password>
+
+# ── IBM WatsonX (planner/executor LLMs) ──────────────────────────────────────
+WATSONX_APIKEY=<your-watsonx-key>
+WATSONX_PROJECT_ID=178e05b2-3352-4f21-8388-572e6b13d65d
+WATSONX_URL=https://us-south.ml.cloud.ibm.com
+
+# ── LiteLLM (optional alternate provider) ────────────────────────────────────
+LITELLM_BASE_URL=
+LITELLM_API_KEY=
+```
+
+### Bring up CouchDB
+
+```bash
+cd src/couchdb
+docker compose up -d
+cd ../..
+
+# Verify
+curl http://localhost:5984/
+# → {"couchdb":"Welcome", ...}
+```
+
+If CouchDB is empty (fresh machine), seed the asset data:
+
+```bash
+PYTHONPATH=src uv run python src/couchdb/init_asset_data.py
+```
+
+### First-time model download
+
+The first time `bench_cache.py`, `timer.py`, or `tools/recalibrate.py` runs
+with Asteria enabled, it will download:
+
+- `Qwen/Qwen3-Embedding-0.6B` (~1.2 GB)
+- `Qwen/Qwen3-Reranker-0.6B` (~1.2 GB)
+
+Subsequent runs reload from local cache (~30 s warm-up).
+
+### Smoke test the install
+
+```bash
+# Pure-Python unit tests (no GPU/MCP needed)
+PYTHONPATH=src:. uv run pytest tests/asteria_unit/ -q
+# → expect 146 passed
+
+# End-to-end single query (loads Qwen models + CouchDB + MCP)
+PYTHONPATH=src:. uv run python timer.py --asteria --skip-summary "What assets are at site MAIN?"
+```
+
+If both succeed the project is ready to use. Continue to the **Testing** section below.
+
+---
+
 ## Why
 
 The plan-execute workflow takes 25–100 s per query (planning LLM call + MCP
@@ -308,15 +402,46 @@ returns the smallest τ_lsm that achieves the target precision. Update
 
 ---
 
-## Known Friction Points
+## Scope and Known Limitations
 
-1. **Staticity gate blocks ANCHORED inserts.** When the answer text doesn't include the resolved window, judger scores answer staticity low (~1–2) and skip-inserts. Workarounds: lower `staticity_volatile`, OR prepend the window to stored answer text at insert time, OR bypass the staticity gate for ANCHORED entries.
+### Recommended scope: knowledge-style queries
 
-2. **No persistence.** Cache resets every process. Production deployment needs `pickle` or `faiss.write_index()` round-trip.
+This implementation is a faithful reproduction of Asteria's pure-semantic cache plus a temporal layer on top. It works **well** for queries where paraphrase variation dominates and the answer is fully determined by the intent (knowledge queries, reference lookups, classification questions). Examples that hit reliably:
 
-3. **LiteLLM rate-limit noise.** Long bench runs see retries that distort latency averages. Fix with `--llm-retries` + backoff (currently only `cache_stress_test.py` has this, not `bench_cache.py`).
+- "List sensors for Chiller 6" / "What sensors does Chiller 6 have"
+- FMSA failure-mode lookups
+- TSFM model-support boolean questions
+- IoT site/asset enumeration ("What assets at MAIN?")
 
-4. **No pre-filter before ANN.** Temporal info flows to judger as instruction text. Means an ANCHORED query with window W can have its ANN candidates dominated by SEs from totally different windows; judger has to filter them out semantically. For very large caches this is wasteful.
+It works **poorly** for parameter-rich data fetches where the same query shape with different parameter values needs different answers. Examples that produce false-positive HITs:
+
+- "Tonnage Chiller 6 June 2020" vs "Tonnage Chiller 9 June 2020" — embeddings ~0.95 cosine, judger can't tell them apart
+- "List failure modes for Chiller 6" vs "List sensors for Chiller 6" — verb collision, judger sees same domain
+- IoT history queries with different (asset, sensor, time-window) tuples
+
+**Bench evaluation should restrict to knowledge-style queries** (FMSA + TSFM + IoT-knowledge + a subset of multiagent). Parameter-rich data-fetch queries are explicitly out of scope and deferred to future work.
+
+### Known friction points
+
+1. **False-positive hits on parameter-rich queries.** Documented above. Mitigated partially by raising `tau_lsm` from the paper default 0.80 to 0.92, which cuts most low-confidence false positives at the cost of fewer hits. Cannot be fully eliminated within pure semantic caching.
+
+2. **Staticity gate blocks ANCHORED inserts when the answer doesn't anchor itself.** When the answer text doesn't include the resolved window, the judger scores its staticity ~1–2 and the insert is skipped. Current workaround: windowless-ANCHORED queries are demoted to STATIC at lookup and insert time so the staticity-based TTL applies. Long-term fix: prepend the resolved window to stored answer text so the judger sees an anchor.
+
+3. **No persistence.** Cache resets on every process. Production deployment needs `pickle` or `faiss.write_index()` round-trip.
+
+4. **LiteLLM rate-limit noise.** Long bench runs see retries that distort latency averages. `bench_cache.py` exposes `--llm-retries` + `--retry-delay-s` to make retry behaviour explicit and visible in logs.
+
+### Future work
+
+1. **Parameter-aware caching.** Extract structured params from each query (entity ID, sensor name, time window, action verb) via lightweight LLM call or rule-based extractor; cache per `(canonical_intent, param_combo)` bucket. Eliminates the false-positive class entirely for parameterised queries.
+
+2. **Hybrid retrieval.** Param-extraction layer in front of the semantic+temporal cache. Param-exact hit short-circuits to direct lookup; semantic match only fires when params overlap. Combines the precision of hash-keyed caching with the paraphrase-robustness of Asteria.
+
+3. **Bucket-based pre-filter before ANN.** Currently candidates are pre-filtered by window-overlap for ANCHORED queries. Could be extended to entity/sensor pre-filter for STATIC queries to further narrow the candidate pool.
+
+4. **Cache persistence layer.** Pickle-based snapshot of `AsteriaCache.ses` plus `faiss.write_index()` round-trip, with versioning and TTL-aware reload on startup.
+
+5. **Online τ_lsm recalibration.** The current `tools/recalibrate.py` is offline. Algorithm 1 from the paper specifies online sampling via `FetchGT(q)`; implementing this needs an oracle callback so production traffic can drive τ adjustment in real time.
 
 ---
 

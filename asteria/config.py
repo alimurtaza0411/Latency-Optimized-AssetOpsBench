@@ -17,7 +17,7 @@ class AsteriaConfig:
     ann_top_k: int = 5                  # max ANN candidates forwarded to judger
 
     # Judger stage  (§4.2)
-    tau_lsm: float = 0.80              # τ_lsm — semantic judger confidence threshold
+    tau_lsm: float = 0.92              # τ_lsm — semantic judger confidence threshold
 
     # Staticity  (§4.1)
     staticity_volatile: float = 2.0    # SEs with staticity ≤ this are NOT cached
