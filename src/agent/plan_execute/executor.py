@@ -144,6 +144,16 @@ class Executor:
         3. Call the LLM to generate tool arguments from the task and prior results.
         4. Call the tool and return its result.
         """
+        if not step.tool or step.tool.lower() in ("none", "null"):
+            return StepResult(
+                step_number=step.step_number,
+                task=step.task,
+                server=step.server,
+                response=step.expected_output,
+                tool=step.tool,
+                tool_args=step.tool_args,
+            )
+
         server_path = self._server_paths.get(step.server)
         if server_path is None:
             return StepResult(
@@ -155,14 +165,6 @@ class Executor:
                     f"Unknown server '{step.server}'. "
                     f"Registered servers: {list(self._server_paths)}"
                 ),
-            )
-
-        if not step.tool or step.tool.lower() in ("none", "null"):
-            return StepResult(
-                step_number=step.step_number,
-                task=step.task,
-                server=step.server,
-                response=step.expected_output,
                 tool=step.tool,
                 tool_args=step.tool_args,
             )
@@ -267,13 +269,20 @@ def _make_stdio_params(server: Path | str) -> "StdioServerParameters":
     - Path → invoked as ``python -m module.path`` when under the repo root
              (supports relative imports), or directly otherwise.
     """
+    import os
     from mcp import StdioServerParameters
+
+    src_root = str(_REPO_ROOT / "src")
+    existing = os.environ.get("PYTHONPATH", "")
+    pythonpath = f"{src_root}:{existing}" if existing else src_root
+    env = {**os.environ, "PYTHONPATH": pythonpath}
 
     if isinstance(server, str):
         return StdioServerParameters(
             command="uv",
             args=["run", server],
             cwd=str(_REPO_ROOT),
+            env=env,
         )
     try:
         rel = server.relative_to(_REPO_ROOT)
@@ -282,9 +291,10 @@ def _make_stdio_params(server: Path | str) -> "StdioServerParameters":
             command="python",
             args=["-m", module],
             cwd=str(_REPO_ROOT),
+            env=env,
         )
     except ValueError:
-        return StdioServerParameters(command="python", args=[str(server)])
+        return StdioServerParameters(command="python", args=[str(server)], env=env)
 
 
 async def _list_tools(server_path: Path | str) -> list[dict]:

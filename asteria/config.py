@@ -17,7 +17,7 @@ class AsteriaConfig:
     ann_top_k: int = 5                  # max ANN candidates forwarded to judger
 
     # Judger stage  (§4.2)
-    tau_lsm: float = 0.80              # τ_lsm — semantic judger confidence threshold
+    tau_lsm: float = 0.92              # τ_lsm — semantic judger confidence threshold
 
     # Staticity  (§4.1)
     staticity_volatile: float = 2.0    # SEs with staticity ≤ this are NOT cached
@@ -28,6 +28,9 @@ class AsteriaConfig:
 
     # Prefetcher  (Algorithm 3)
     markov_theta: float = 0.30         # prefetch confidence threshold
+
+    # Temporal bucketing
+    enable_temporal_bucketing: bool = True   # enable VOLATILE/ANCHORED/STATIC gate
 
     # Remote API simulation
     remote_latency_ms: float = 350.0   # simulated cross-region latency

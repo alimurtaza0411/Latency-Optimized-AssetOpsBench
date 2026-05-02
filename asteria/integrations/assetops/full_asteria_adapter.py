@@ -12,6 +12,7 @@ def build_asteria_cache_stack(
     tau_sim: float | None = None,
     tau_lsm: float | None = None,
     enable_prefetch: bool = True,
+    enable_temporal_bucketing: bool | None = None,
 ) -> Any:
     """Construct :class:`asteria.cache.AsteriaCache` with default paper models.
 
@@ -30,6 +31,7 @@ def build_asteria_cache_stack(
     cap = capacity if capacity is not None else DEFAULT_CONFIG.cache_capacity
     ts = tau_sim if tau_sim is not None else DEFAULT_CONFIG.tau_sim
     tl = tau_lsm if tau_lsm is not None else DEFAULT_CONFIG.tau_lsm
+    etb = enable_temporal_bucketing if enable_temporal_bucketing is not None else DEFAULT_CONFIG.enable_temporal_bucketing
     emb = EmbeddingModel()
     judger = SemanticJudger()
     return AsteriaCache(
@@ -39,6 +41,7 @@ def build_asteria_cache_stack(
         tau_sim=ts,
         tau_lsm=tl,
         enable_prefetch=enable_prefetch,
+        enable_temporal_bucketing=etb,
     )
 
 
