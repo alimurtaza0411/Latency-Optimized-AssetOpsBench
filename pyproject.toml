@@ -33,6 +33,7 @@ dependencies = [
     "torch",
     "sentence-transformers>=5.4.1",
     "faiss-cpu>=1.13.2",
+    "matplotlib>=3.7",
 ]
 
 [project.scripts]
