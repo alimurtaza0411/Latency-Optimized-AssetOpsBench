@@ -18,6 +18,7 @@ class AsteriaConfig:
 
     # Judger stage  (§4.2)
     tau_lsm: float = 0.92              # τ_lsm — semantic judger confidence threshold
+    judger_model: str = "Qwen/Qwen3-Reranker-0.6B"  # cross-encoder reranker name
 
     # Staticity  (§4.1)
     staticity_volatile: float = 2.0    # SEs with staticity ≤ this are NOT cached
