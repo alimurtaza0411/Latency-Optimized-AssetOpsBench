@@ -1,0 +1,671 @@
+---
+pid: 5457
+cwd: /Users/alimurtazamerchant/Desktop/HPML/Project/AssetOpsBench
+last_command: |
+  PYTHONPATH=src:. uv run python bench_cache.py \  --seed-csv cache_seed.csv \  --test-csv cache_test.csv \  --sample-seed 7 \  --skip-summary \  --confusion-csv tmp/confusion_smoke.csv \--verbose
+last_exit_code: 0
+---
+    [decision]
+      MISS — full pipeline ran
+    total: 218.36s
+   69/100  id=711  parent_id=410  tier=paraphrase  hit=False  total=20.02s
+    text: 'Summarize work order events, alerts, and anomalies for equipment CWC04009 during the first'
+    now:  2026-03-17T19:53:00
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+   70/100  id=712  parent_id=431  tier=paraphrase  hit=False  total=123.18s
+    text: 'Review chiller 9 (CWC04009) performance for June 2020 and identify any anomalies or operat'
+    now:  2024-06-06T20:18:44
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+   71/100  id=713  parent_id=514  tier=paraphrase  hit=False  total=41.12s
+    text: "Are there any anomalies in Chiller 9's Condenser Water Flow readings at MAIN in the week o"
+    now:  2025-02-07T17:32:52
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 2
+    [Judger]
+      scores: [0.138, 0.19]    threshold τ_lsm: 0.80
+      best:   0.190
+    [decision]
+      MISS — full pipeline ran
+    total: 41.12s
+   72/100  id=714  parent_id=202  tier=paraphrase  hit=True  total=4.40s
+    text: 'List all available pretrained time series models in the system.'
+    now:  2026-01-26T02:13:47
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.988]    threshold τ_lsm: 0.80
+      best:   0.988
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Do you support any models for time series forecasting?'
+      (score=0.988  bucket=STATIC)
+    total: 4.40s
+   73/100  id=715  parent_id=209  tier=paraphrase  hit=True  total=3.71s
+    text: 'Do any models with a context length of 96 work in TSFM?'
+    now:  2025-11-28T19:04:23
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.978]    threshold τ_lsm: 0.80
+      best:   0.978
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Are there any models supported in TSFM that have a context length of 1024?'
+      (score=0.978  bucket=STATIC)
+    total: 3.71s
+   74/100  id=716  parent_id=432  tier=paraphrase  hit=False  total=45.93s
+    text: 'Review chiller 9 performance with ID CWC04009 at main site for June 2020 and identify any '
+    now:  2024-03-23T16:34:26
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+   75/100  id=717  parent_id=501  tier=paraphrase  hit=False  total=50.53s
+    text: 'Has an anomaly been detected in the tonnage of Chiller 6 at the MAIN site during the week '
+    now:  2025-04-08T05:02:17
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 4
+    [Judger]
+      scores: [0.0, 0.343, 0.294, 0.253]    threshold τ_lsm: 0.80
+      best:   0.343
+    [decision]
+      MISS — full pipeline ran
+    total: 50.53s
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+   76/100  id=718  parent_id=42  tier=paraphrase  hit=False  total=35.34s
+    text: 'Return the supply temperature reading from CQPA AHU 2B at 11:45 PM on September 19, 2020, '
+    now:  2025-08-21T12:22:28
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 0
+    [Judger]
+      no candidates evaluated
+    [decision]
+      MISS — full pipeline ran
+    total: 35.34s
+   77/100  id=719  parent_id=109  tier=paraphrase  hit=True  total=25.92s
+    text: 'List failure modes of Chiller 6 that are detectable by available sensors.'
+    now:  2024-07-22T16:43:02
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.276, 0.996, 0.276, 0.161, 0.229]    threshold τ_lsm: 0.80
+      best:   0.996
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Provide a list of sensors on Chiller 6 relevant to diagnosing Compressor Overheating.'
+      (score=0.996  bucket=STATIC)
+    total: 25.92s
+   78/100  id=720  parent_id=3  tier=paraphrase  hit=False  total=13.72s
+    text: 'List all assets located at MAIN site'
+    now:  2025-11-06T12:36:08
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 0
+    [Judger]
+      no candidates evaluated
+    [decision]
+      MISS — full pipeline ran
+    total: 13.72s
+   79/100  id=721  parent_id=218  tier=paraphrase  hit=False  total=35.15s
+    text: "Predict 'Chiller 9 Condenser Water Flow' from 'chiller9_annotated_small_test.csv' data, us"
+    now:  2025-03-18T22:46:33
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 3
+    [Judger]
+      scores: [0.824, 0.117, 0.028]    threshold τ_lsm: 0.80
+      best:   0.824
+    [decision]
+      MISS — full pipeline ran
+    total: 35.15s
+   80/100  id=722  parent_id=46  tier=paraphrase  hit=False  total=32.09s
+    text: 'Get the supply temperature data for Chiller 3 at MAIN site for the last week'
+    now:  2025-11-02T15:47:04
+    [temporal filter]
+      bucket: ANCHORED    window: 2025-10-26T15:47:04 -> 2025-11-02T15:47:04
+    [pre-filter]
+      scope: ANCHORED window-overlap filter
+      candidates after pre-filter: 0
+    [ANN]
+      candidates ≥ τ_sim: 0
+    [Judger]
+      no candidates evaluated
+    [decision]
+      MISS — full pipeline ran
+    total: 32.09s
+   81/100  id=723  parent_id=435  tier=paraphrase  hit=False  total=27.99s
+    text: 'Review alerts for chiller 9 (CWC04009) in June 2020 and create a work order based on alert'
+    now:  2025-10-22T12:09:16
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+   82/100  id=724  parent_id=214  tier=paraphrase  hit=False  total=17.86s
+    text: 'What is the count of models that have a context length of exactly 96?'
+    now:  2024-10-29T09:15:29
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.918]    threshold τ_lsm: 0.80
+      best:   0.918
+    [decision]
+      MISS — full pipeline ran
+    total: 17.86s
+   83/100  id=725  parent_id=609  tier=paraphrase  hit=True  total=25.53s
+    text: 'Provide a list of sensors for Chiller 6 located at MAIN site that may be relevant to diagn'
+    now:  2025-11-07T17:20:12
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.565, 0.201, 0.998, 0.898, 0.898]    threshold τ_lsm: 0.80
+      best:   0.998
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Provide a list of sensors on Chiller 6 relevant to diagnosing Compressor Overheating.'
+      (score=0.998  bucket=STATIC)
+    total: 25.53s
+   84/100  id=726  parent_id=611  tier=paraphrase  hit=False  total=629.81s
+    text: 'What sensor is most crucial for tracking Evaporator Water side fouling in Chiller 6 at the'
+    now:  2024-01-09T12:24:22
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+   85/100  id=727  parent_id=204  tier=paraphrase  hit=True  total=4.60s
+    text: 'Does the system support TTM, a time series model?'
+    now:  2024-09-27T02:41:48
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.945]    threshold τ_lsm: 0.80
+      best:   0.945
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Do you support any models for time series forecasting?'
+      (score=0.945  bucket=STATIC)
+    total: 4.60s
+   86/100  id=728  parent_id=108  tier=paraphrase  hit=False  total=653.41s
+    text: 'What are the failure modes of Chiller 6 detectable by temperature and power input sensors?'
+    now:  2025-08-06T11:59:23
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.073, 0.073, 0.073, 0.252, 0.398]    threshold τ_lsm: 0.80
+      best:   0.398
+    [decision]
+      MISS — full pipeline ran
+    total: 653.41s
+   87/100  id=729  parent_id=510  tier=paraphrase  hit=True  total=25.43s
+    text: "Provide anomaly detection results for Chiller 9's Tonnage and Power Input at the MAIN site"
+    now:  2024-12-09T05:14:22
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.039, 0.098, 0.729, 0.924, 0.005]    threshold τ_lsm: 0.80
+      best:   0.924
+    [decision]
+      HIT (source=sine)
+      matched cached query: "Identify anomalies in Chiller 6's Condenser Water Flow data at MAIN for the week of 2020-0"
+      (score=0.924  bucket=STATIC)
+    total: 25.43s
+   88/100  id=730  parent_id=619  tier=paraphrase  hit=False  total=184.00s
+    text: "At MAIN site, when Chiller 6's Liquid Refrigerant Evaporator Temperature drops, what is th"
+    now:  2025-05-11T23:48:57
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.129, 0.622, 0.203, 0.251, 0.179]    threshold τ_lsm: 0.80
+      best:   0.622
+    [decision]
+      MISS — full pipeline ran
+    total: 184.00s
+   89/100  id=731  parent_id=4  tier=paraphrase  hit=True  total=1.54s
+    text: 'Identify assets located at the MAIN facility.'
+    now:  2024-04-16T08:06:40
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.996]    threshold τ_lsm: 0.80
+      best:   0.996
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'List all assets located at MAIN site'
+      (score=0.996  bucket=STATIC)
+    total: 1.54s
+ERROR:utilities-mcp-server:Error reading JSON file return_temperature_data_CQPA_AHU_2B_MAIN_2020-09-19_19-00-00.json: [Errno 2] No such file or directory: 'return_temperature_data_CQPA_AHU_2B_MAIN_2020-09-19_19-00-00.json'
+   90/100  id=732  parent_id=48  tier=paraphrase  hit=False  total=94.65s
+    text: 'Return the return temperature data for CQPA AHU 2B at site MAIN on September 19, 2020 at 7'
+    now:  2024-02-29T22:57:31
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.108]    threshold τ_lsm: 0.80
+      best:   0.108
+    [decision]
+      MISS — full pipeline ran
+    total: 94.65s
+   91/100  id=733  parent_id=421  tier=paraphrase  hit=False  total=125.83s
+    text: 'Review the alerts and anomalies associated with Chiller 9 (CWC04009) in May and June 2020 '
+    now:  2026-01-16T04:00:50
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+   92/100  id=734  parent_id=433  tier=paraphrase  hit=False  total=148.08s
+    text: "Create an early warning system for Chiller 9's potential condenser Water side fouling fail"
+    now:  2025-12-28T04:30:03
+    [temporal filter]
+      bucket: ANCHORED    window: 2020-04-20T12:30:00 -> 2020-05-12T19:30:00
+    [pre-filter]
+      scope: ANCHORED window-overlap filter
+      candidates after pre-filter: 1
+    [ANN]
+      candidates ≥ τ_sim: 1
+    [Judger]
+      scores: [0.0]    threshold τ_lsm: 0.80
+      best:   0.000
+    [decision]
+      MISS — full pipeline ran
+    total: 148.08s
+   93/100  id=735  parent_id=517  tier=paraphrase  hit=True  total=14.97s
+    text: 'Has any anomalous behavior been observed in the Tonnage of Chiller 9 at the MAIN site duri'
+    now:  2024-06-05T22:11:57
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 3
+    [Judger]
+      scores: [0.333, 0.225, 0.964]    threshold τ_lsm: 0.80
+      best:   0.964
+    [decision]
+      HIT (source=sine)
+      matched cached query: "Are there any anomalies in Chiller 9's Condenser Water Flow readings at MAIN in the week o"
+      (score=0.964  bucket=STATIC)
+    total: 14.97s
+   94/100  id=736  parent_id=205  tier=paraphrase  hit=False  total=52.29s
+    text: 'Does TSFM support the LSTM model?'
+    now:  2026-02-08T20:06:13
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 0
+    [Judger]
+      no candidates evaluated
+    [decision]
+      MISS — full pipeline ran
+    total: 52.29s
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+   95/100  id=737  parent_id=505  tier=paraphrase  hit=False  total=129.48s
+    text: "Can you forecast Chiller 6's Tonnage at MAIN for next week using the data from the week of"
+    now:  2025-01-15T23:25:54
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 4
+    [Judger]
+      scores: [0.0, 0.034, 0.149, 0.148]    threshold τ_lsm: 0.80
+      best:   0.149
+    [decision]
+      MISS — full pipeline ran
+    total: 129.48s
+   96/100  id=738  parent_id=120  tier=paraphrase  hit=True  total=25.38s
+    text: 'To detect chiller trip failures in POKMAIN chiller 6, what sensors should I use and what i'
+    now:  2024-07-20T15:29:40
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.544, 0.496, 0.544, 0.544, 0.993]    threshold τ_lsm: 0.80
+      best:   0.993
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Provide a list of sensors on Chiller 6 relevant to diagnosing Compressor Overheating.'
+      (score=0.993  bucket=STATIC)
+    total: 25.38s
+   97/100  id=739  parent_id=428  tier=paraphrase  hit=False  total=38.21s
+    text: 'Can you create rules to differentiate between significant and false alerts?'
+    now:  2024-05-22T05:16:19
+    [temporal filter]
+      bucket: VOLATILE    window: —
+    [decision] VOLATILE bypass — no cache lookup
+   98/100  id=740  parent_id=615  tier=paraphrase  hit=True  total=20.03s
+    text: 'Create a machine learning model for identifying overheating failures in Chiller 6 located '
+    now:  2025-11-25T22:42:57
+    [temporal filter]
+      bucket: STATIC    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 4
+    [Judger]
+      scores: [0.689, 0.689, 0.717, 0.996]    threshold τ_lsm: 0.80
+      best:   0.996
+    [decision]
+      HIT (source=sine)
+      matched cached query: 'Provide a list of sensors on Chiller 6 relevant to diagnosing Compressor Overheating.'
+      (score=0.996  bucket=STATIC)
+    total: 20.03s
+   99/100  id=741  parent_id=518  tier=paraphrase  hit=True  total=26.10s
+    text: 'Forecast the energy usage of Chiller 9 at the MAIN site for next week based on the data fr'
+    now:  2024-02-09T21:27:43
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.024, 0.228, 0.77, 0.066, 0.944]    threshold τ_lsm: 0.80
+      best:   0.944
+    [decision]
+      HIT (source=sine)
+      matched cached query: "Identify anomalies in Chiller 6's Condenser Water Flow data at MAIN for the week of 2020-0"
+      (score=0.944  bucket=STATIC)
+    total: 26.10s
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+
+Give Feedback / Get Help: https://github.com/BerriAI/litellm/issues/new
+LiteLLM.Info: If you need to debug this error, use `litellm._turn_on_debug()'.
+
+  100/100  id=742  parent_id=508  tier=paraphrase  hit=False  total=59.01s
+    text: 'Were there any irregularities in the performance data of Chiller 6 at MAIN during the week'
+    now:  2025-11-28T16:21:51
+    [temporal filter]
+      bucket: ANCHORED    window: —
+    [pre-filter]
+      scope: full cache (STATIC query, no temporal narrowing)
+    [ANN]
+      candidates ≥ τ_sim: 5
+    [Judger]
+      scores: [0.188, 0.591, 0.41, 0.455, 0.766]    threshold τ_lsm: 0.80
+      best:   0.766
+    [decision]
+      MISS — full pipeline ran
+    total: 59.01s
+
+[after cached pass] Cache state: WARM (48 entries)
+
+══════════════════════════════════════════════════════════════════════
+  Benchmark Summary
+══════════════════════════════════════════════════════════════════════
+  baseline runs   : 100    avg=131.85s  med=44.52s  min=6.76s  max=1743.41s
+  cached   runs   : 100    avg=124.13s  med=33.63s  min=0.76s  max=977.05s
+  cache hits      : 38/100  (38.0%)
+
+  Asteria latency (paired rows) — overall avg mixes hits + misses; use the rows below for end-user benefit.
+  On cache HITs only (n=38):
+    speedup baseline/cached  mean=8.35x  median=4.14x  geom_mean=4.98x
+    time saved vs baseline   mean=68.8%  median=75.8%  (per-row (b−c)/b)
+    seconds saved (hit rows) mean=52.53s  median=15.25s
+  On cache MISS (n=62) — extra vs baseline:
+    cached−baseline  mean=+19.74s  median=+6.02s  (lookup + pipeline; expected ≥ 0 often)
+
+  Per-row comparison (baseline → cached):
+  id      parent  tier                  baseline      cached   hit
+  643     403     paraphrase              11.41s      16.09s   YES
+  644     403     paraphrase              82.14s      23.93s    no
+  645     403     paraphrase              14.19s      27.52s    no
+  646     606     paraphrase             657.45s     280.36s    no
+  647     606     paraphrase             106.07s      25.19s   YES
+  648     606     paraphrase             204.84s     275.50s    no
+  649     437     paraphrase             817.61s     444.15s    no
+  650     437     paraphrase             600.73s     425.59s    no
+  651     437     paraphrase             743.83s     482.54s    no
+  652     509     paraphrase              28.40s      50.52s    no
+  653     509     paraphrase              55.12s      20.22s   YES
+  654     509     paraphrase              26.18s      22.90s    no
+  655     411     paraphrase              29.57s      41.16s    no
+  656     411     paraphrase              82.77s     196.96s    no
+  657     411     paraphrase             112.22s     197.67s    no
+  658     119     paraphrase              31.95s     180.00s    no
+  659     119     paraphrase              67.00s      72.91s    no
+  660     119     paraphrase              93.05s      87.84s    no
+  661     47      paraphrase              15.21s       1.84s   YES
+  662     47      paraphrase              28.41s       1.89s   YES
+  663     47      paraphrase              68.96s      23.26s    no
+  664     111     paraphrase              80.30s     137.19s    no
+  665     111     paraphrase             130.88s     108.87s    no
+  666     111     paraphrase              27.77s      25.12s   YES
+  667     415     paraphrase             322.17s      20.50s   YES
+  668     415     paraphrase             350.58s      10.22s   YES
+  669     415     paraphrase             181.17s     182.85s    no
+  670     222     paraphrase              68.94s      14.92s   YES
+  671     222     paraphrase              29.82s      15.04s   YES
+  672     222     paraphrase              23.97s      10.04s   YES
+  673     439     paraphrase            1053.26s     977.05s    no
+  674     439     paraphrase              39.75s     853.96s    no
+  675     439     paraphrase            1743.41s     962.77s    no
+  676     426     paraphrase             103.78s       4.06s   YES
+  677     426     paraphrase              41.83s       3.89s   YES
+  678     426     paraphrase             116.28s       4.02s   YES
+  679     1       paraphrase               7.45s       0.79s   YES
+  680     1       paraphrase               6.76s       0.76s   YES
+  681     1       paraphrase               6.93s       0.77s   YES
+  682     614     paraphrase             233.76s     108.02s    no
+  683     614     paraphrase             200.16s     715.67s    no
+  684     614     paraphrase             644.96s     183.38s    no
+  685     504     paraphrase              40.44s      25.26s   YES
+  686     504     paraphrase              55.25s      57.79s    no
+  687     504     paraphrase              34.67s      47.87s    no
+  688     203     paraphrase              13.79s       4.41s   YES
+  689     203     paraphrase              12.50s       4.36s   YES
+  690     203     paraphrase              12.67s       4.39s   YES
+  691     210     paraphrase              33.83s       3.79s   YES
+  692     210     paraphrase              11.69s       3.80s   YES
+  693     210     paraphrase              11.58s       3.82s   YES
+  694     511     paraphrase             102.61s      53.60s    no
+  695     511     paraphrase              38.08s      48.29s    no
+  696     511     paraphrase              38.37s      32.12s    no
+  697     618     paraphrase              50.49s      74.42s    no
+  698     618     paraphrase             159.67s     743.92s    no
+  699     618     paraphrase             686.00s     680.04s    no
+  700     424     paraphrase              24.01s      30.15s    no
+  701     424     paraphrase              14.11s      35.27s    no
+  702     424     paraphrase              37.16s      24.77s    no
+  703     507     paraphrase              31.27s      59.08s    no
+  704     223     paraphrase              84.52s      10.02s   YES
+  705     425     paraphrase             171.08s       3.95s   YES
+  706     413     paraphrase              26.82s      38.45s    no
+  707     105     paraphrase              66.68s      95.57s    no
+  708     613     paraphrase              57.44s      25.86s   YES
+  709     118     paraphrase              34.02s     110.47s    no
+  710     604     paraphrase             102.62s     218.36s    no
+  711     410     paraphrase              29.23s      20.02s    no
+  712     431     paraphrase             125.58s     123.18s    no
+  713     514     paraphrase              24.88s      41.12s    no
+  714     202     paraphrase              63.67s       4.40s   YES
+  715     209     paraphrase              16.22s       3.71s   YES
+  716     432     paraphrase             202.58s      45.93s    no
+  717     501     paraphrase              25.05s      50.53s    no
+  718     42      paraphrase              97.66s      35.34s    no
+  719     109     paraphrase              97.17s      25.92s   YES
+  720     3       paraphrase              41.74s      13.72s    no
+  721     218     paraphrase              35.57s      35.15s    no
+  722     46      paraphrase              30.23s      32.09s    no
+  723     435     paraphrase              90.83s      27.99s    no
+  724     214     paraphrase              13.81s      17.86s    no
+  725     609     paraphrase              40.85s      25.53s   YES
+  726     611     paraphrase              31.50s     629.81s    no
+  727     204     paraphrase              11.05s       4.60s   YES
+  728     108     paraphrase              63.64s     653.41s    no
+  729     510     paraphrase              26.09s      25.43s   YES
+  730     619     paraphrase             108.05s     184.00s    no
+  731     4       paraphrase              12.28s       1.54s   YES
+  732     48      paraphrase              89.40s      94.65s    no
+  733     421     paraphrase             121.85s     125.83s    no
+  734     433     paraphrase              30.87s     148.08s    no
+  735     517     paraphrase              24.99s      14.97s   YES
+  736     205     paraphrase              10.65s      52.29s    no
+  737     505     paraphrase              47.20s     129.48s    no
+  738     120     paraphrase              69.36s      25.38s   YES
+  739     428     paraphrase              27.60s      38.21s    no
+  740     615     paraphrase             198.95s      20.03s   YES
+  741     518     paraphrase             105.98s      26.10s   YES
+  742     508     paraphrase              28.29s      59.01s    no
+
+══════════════════════════════════════════════════════════════════════
+  Asteria reliability (confusion vs seed parent_id)
+══════════════════════════════════════════════════════════════════════
+  Label mode       : intent: y=true if test.parent_id appears in any executed seed row
+  Tiers in matrix  : paraphrase, shifted_anchored
+  Rows evaluated   : 100 (of 100 sampled)
+  Seed parents     : 20 executed, 13 warmed (insert ok)
+
+                      Predicted miss   Predicted hit
+  Actual negative         26               14
+  Actual positive         36               24
+
+  TN = no seed parent, no hit  |  TP = seed parent and hit
+  FN = seed parent, miss        |  FP = no seed parent but hit
+
+  Precision  : 0.6316
+  Recall     : 0.4000
+  F1         : 0.4898
+  Specificity: 0.6500
+
+  Wrote per-row labels → tmp/confusion_smoke.csv
+(venv) (base) alimurtazamerchant@Alimurtazas-MacBook-Pro-7 AssetOpsBench %
