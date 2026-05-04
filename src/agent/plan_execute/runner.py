@@ -56,16 +56,20 @@ class PlanExecuteRunner(AgentRunner):
                       names the planner will assign steps to.  Values are
                       either a uv entry-point name (str) or a Path to a
                       script file.  Defaults to all five registered servers.
+        executor: Optional pre-configured Executor instance.  When provided,
+                  ``server_paths`` is ignored.  Use this to inject a
+                  ``ParallelExecutor`` or other subclass.
     """
 
     def __init__(
         self,
         llm: LLMBackend,
         server_paths: dict[str, Path | str] | None = None,
+        executor: Executor | None = None,
     ) -> None:
         super().__init__(llm, server_paths)
         self._planner = Planner(llm)
-        self._executor = Executor(llm, server_paths)
+        self._executor = executor if executor is not None else Executor(llm, server_paths)
 
     async def run(self, question: str) -> OrchestratorResult:
         """Run the full plan-execute loop for a question.

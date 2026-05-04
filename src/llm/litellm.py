@@ -33,6 +33,7 @@ class LiteLLMBackend(LLMBackend):
 
     def generate(self, prompt: str, temperature: float = 0.0) -> str:
         import litellm
+        litellm.suppress_debug_info = True
 
         kwargs: dict = {
             "model": self._model_id,
@@ -50,5 +51,5 @@ class LiteLLMBackend(LLMBackend):
             kwargs["api_key"] = os.environ["LITELLM_API_KEY"]
             kwargs["api_base"] = os.environ["LITELLM_BASE_URL"]
 
-        response = litellm.completion(**kwargs)
+        response = litellm.completion(**kwargs, timeout=120)
         return response.choices[0].message.content

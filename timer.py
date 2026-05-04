@@ -25,12 +25,78 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import hashlib
+import json as _json
+import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 from sample_queries import filter_rows, load_rows, sample_rows
+
+_REPO_ROOT = Path(__file__).resolve().parent
+_CACHE_PATH = _REPO_ROOT / ".discovery_cache.json"
+_DEFAULT_TTL = 86400  # 24 hours
+
+
+class DiscoveryCache:
+    """Disk-backed cache for MCP server tool signatures (24h TTL)."""
+
+    def __init__(self, server_paths, cache_path=_CACHE_PATH, ttl=_DEFAULT_TTL):
+        self._server_paths = server_paths
+        self._cache_path = cache_path
+        self._ttl = ttl
+
+    def _compute_key(self) -> str:
+        parts = []
+        for name in sorted(self._server_paths):
+            path = self._server_paths[name]
+            server_dir = _REPO_ROOT / "src" / "servers" / name
+            file_mtimes = []
+            if server_dir.is_dir():
+                for py_file in sorted(server_dir.rglob("*.py")):
+                    try:
+                        file_mtimes.append(f"{py_file.relative_to(server_dir)}:{os.path.getmtime(py_file)}")
+                    except OSError:
+                        pass
+            mtime_str = "|".join(file_mtimes) if file_mtimes else "0"
+            parts.append(f"{name}:{path}:{mtime_str}")
+        pyproject = _REPO_ROOT / "pyproject.toml"
+        if pyproject.exists():
+            parts.append(f"pyproject:{os.path.getmtime(pyproject)}")
+        return hashlib.md5("|".join(parts).encode()).hexdigest()
+
+    def load(self):
+        if not self._cache_path.exists():
+            return None
+        try:
+            data = _json.loads(self._cache_path.read_text())
+        except (ValueError, OSError):
+            self._delete_stale("corrupted"); return None
+        if data.get("key", "") != self._compute_key():
+            self._delete_stale("key mismatch"); return None
+        if time.time() - data.get("timestamp", 0) > self._ttl:
+            self._delete_stale("TTL expired"); return None
+        return data.get("descriptions")
+
+    def save(self, descriptions):
+        self._cache_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {"key": self._compute_key(), "timestamp": time.time(),
+                   "server_names": sorted(self._server_paths.keys()),
+                   "descriptions": descriptions}
+        self._cache_path.write_text(_json.dumps(payload, indent=2))
+
+    def clear(self):
+        if self._cache_path.exists():
+            self._cache_path.unlink(); print("  Discovery cache cleared.")
+        else:
+            print("  No discovery cache to clear.")
+
+    def _delete_stale(self, reason):
+        print(f"  Cache invalidated: {reason}")
+        if self._cache_path.exists():
+            self._cache_path.unlink()
 
 
 
@@ -48,50 +114,54 @@ class StepTiming:
     server: str
     task: str
     tool: str
-    llm_resolve_s: float = 0.0   # time spent resolving tool args via LLM
-    tool_call_s: float = 0.0     # time spent in the MCP tool call
+    llm_resolve_s: float = 0.0
+    tool_call_s: float = 0.0
     total_s: float = 0.0
     success: bool = True
+    tool_args: dict = field(default_factory=dict)
+    response: str = ""
+    error: str = ""
+
+
+@dataclass
+class PlanStepInfo:
+    step_number: int
+    task: str
+    server: str
+    tool: str
+    dependencies: list[int] = field(default_factory=list)
+    expected_output: str = ""
 
 
 @dataclass
 class RunTiming:
     question: str
+    mode: str = "sequential"
+    cache_discovery: bool = False
     question_metadata: dict[str, str] | None = None
     asteria_lookup_s: float = 0.0
     discovery_s: float = 0.0
     planning_s: float = 0.0
+    prefetch_s: float = 0.0
     steps: list[StepTiming] = field(default_factory=list)
+    layer_wall_times: list[float] = field(default_factory=list)
     summarization_s: float = 0.0
     asteria_insert_s: float = 0.0
     total_s: float = 0.0
+    plan_steps: list[PlanStepInfo] = field(default_factory=list)
+    plan_layers: list[list[int]] = field(default_factory=list)
     temporal_debug: dict[str, object] | None = None
     asteria_lookup_debug: dict[str, object] | None = None
     asteria_insert_debug: dict[str, object] | None = None
     asteria_hit: bool = False
     asteria_summary: dict[str, object] | None = None
+    answer: str = ""
 
     @property
     def execution_s(self) -> float:
+        if self.mode == "parallel" and self.layer_wall_times:
+            return sum(self.layer_wall_times)
         return sum(s.total_s for s in self.steps)
-
-
-# ── LLM shim: strip doubled outer braces from arg-resolution responses ───────
-#
-# Llama-3.3 on Watsonx frequently returns valid JSON wrapped in extra braces,
-# e.g. '{{"site_name": "Main"}}', which the executor's _parse_json rejects and
-# falls back to {} args. Stripping at the LLM layer (outside src/) recovers it.
-
-class _BraceFixingLLM:
-    def __init__(self, inner) -> None:
-        self._inner = inner
-
-    def generate(self, prompt: str, temperature: float = 0.0) -> str:
-        out = self._inner.generate(prompt, temperature)
-        s = out.strip()
-        if s.startswith("{{") and s.endswith("}}"):
-            return s[1:-1]
-        return out
 
 
 # ── instrumented runner ───────────────────────────────────────────────────────
@@ -119,7 +189,7 @@ class ProfiledRunner:
         from agent.plan_execute.planner import Planner
 
         self._model_id = model_id
-        self._llm = _BraceFixingLLM(LiteLLMBackend(model_id=model_id))
+        self._llm = LiteLLMBackend(model_id=model_id)
         self._server_paths = server_paths or DEFAULT_SERVER_PATHS
         self._planner = Planner(self._llm)
         self._executor = Executor(self._llm, self._server_paths)
@@ -127,6 +197,7 @@ class ProfiledRunner:
         self._summarize = summarize
         self._summary_max_chars = summary_max_chars
         self._step_response_max_chars = step_response_max_chars
+        self._cache = DiscoveryCache(self._server_paths)
 
         # stash references to internal helpers for timed calls
         self._resolve_args_with_llm = _resolve_args_with_llm
@@ -140,36 +211,32 @@ class ProfiledRunner:
 
             self._asteria_cache = build_asteria_cache_stack()
 
-            # Pre-pay PyTorch / Transformers JIT warmup on the judger now,
-            # not during the first user query.  Without this, the first row
-            # that produces ANN candidates is artificially charged ~30-50 s
-            # of kernel warmup and skews bench latencies dramatically.
             try:
                 self._asteria_cache.judger.score("warmup query", "warmup answer")
             except Exception:  # noqa: BLE001
                 pass
 
-    async def run(self, question: str, now=None) -> RunTiming:
-        """
-        Execute the plan-execute pipeline for `question`.
+    async def run(self, question: str, now=None, *, parallel: bool = False, cache_discovery: bool = False) -> RunTiming:
+        """Execute the plan-execute pipeline with optional optimizations.
 
         Parameters
         ----------
-        question : str
-            The user query.
-        now : datetime.datetime | None
-            Simulated wall clock used by the temporal classifier when
-            resolving relative phrases.  Forwarded to AsteriaCache.lookup
-            and AsteriaCache.insert so seed and test runs over the same
-            CSV row see identical resolved windows.  None → real wall clock.
+        parallel : bool
+            Use DAG-based parallel execution via MCPServerPool.
+        cache_discovery : bool
+            Use disk-cached discovery phase (24h TTL).
         """
         from agent.plan_execute.models import StepResult
 
-        timing = RunTiming(question=question)
+        timing = RunTiming(
+            question=question,
+            mode="parallel" if parallel else "sequential",
+            cache_discovery=cache_discovery,
+        )
         timing.temporal_debug = _describe_temporal_policy(question, now=now)
         run_start = time.perf_counter()
 
-        # ── 0. Asteria query-level lookup (Sine + judger + temporal logic) ───
+        # ── 0. Asteria query-level lookup ─────────────────────────────────────
         if self._asteria_cache is not None:
             t0 = time.perf_counter()
             cached_answer, debug = self._asteria_cache.lookup(question, now=now)
@@ -187,7 +254,15 @@ class ProfiledRunner:
 
         # ── 1. Discovery ──────────────────────────────────────────────────────
         t0 = time.perf_counter()
-        server_descriptions = await self._executor.get_server_descriptions()
+        if cache_discovery:
+            cached = self._cache.load()
+            if cached is not None:
+                server_descriptions = cached
+            else:
+                server_descriptions = await self._executor.get_server_descriptions()
+                self._cache.save(server_descriptions)
+        else:
+            server_descriptions = await self._executor.get_server_descriptions()
         timing.discovery_s = time.perf_counter() - t0
 
         # ── 2. Planning ───────────────────────────────────────────────────────
@@ -195,94 +270,96 @@ class ProfiledRunner:
         plan = self._planner.generate_plan(question, server_descriptions)
         timing.planning_s = time.perf_counter() - t0
 
-        # ── 3. Execution (step by step) ───────────────────────────────────────
-        ordered = plan.resolved_order()
-        context: dict[int, StepResult] = {}
-        tool_schemas: dict[str, dict[str, str]] = {}
-
-        # Match executor behavior: fetch tool schemas once for arg resolution.
-        server_names = {step.server for step in ordered}
-        for name in server_names:
-            path = self._server_paths.get(name)
-            if path is None:
-                continue
-            try:
-                tools = await self._list_tools(path)
-                tool_schemas[name] = {
-                    t["name"]: ", ".join(
-                        f"{p['name']}: {p['type']}{'?' if not p['required'] else ''}"
-                        for p in t.get("parameters", [])
-                    )
-                    for t in tools
-                }
-            except Exception:  # noqa: BLE001
-                tool_schemas[name] = {}
-
-        for step in ordered:
-            step_start = time.perf_counter()
-            st = StepTiming(
-                step_number=step.step_number,
-                server=step.server,
-                task=step.task,
-                tool=step.tool or "none",
+        timing.plan_steps = [
+            PlanStepInfo(
+                step_number=s.step_number, task=s.task, server=s.server,
+                tool=s.tool, dependencies=s.dependencies,
+                expected_output=s.expected_output,
             )
+            for s in plan.steps
+        ]
+        timing.plan_layers = [
+            [s.step_number for s in layer]
+            for layer in plan.dependency_layers()
+        ]
 
-            server_path = self._server_paths.get(step.server)
-            if server_path is None or not step.tool or step.tool.lower() in ("none", "null"):
-                # no tool call — record zero times
-                result = StepResult(
-                    step_number=step.step_number,
-                    task=step.task,
-                    server=step.server,
-                    response=step.expected_output,
-                    tool=step.tool,
-                    tool_args=step.tool_args,
+        # ── 3. Execution ──────────────────────────────────────────────────────
+        all_steps = plan.steps
+        ordered = plan.resolved_order()
+        server_names = {
+            step.server for step in all_steps
+            if step.tool and step.tool.lower() not in ("none", "null")
+        } & set(self._server_paths)
+
+        context: dict[int, StepResult] = {}
+
+        if parallel:
+            # ── 3a. Parallel execution (pool + DAG layers) ────────────────
+            from agent.plan_execute.server_pool import MCPServerPool
+
+            async with MCPServerPool(self._server_paths) as pool:
+                await pool.start_servers(server_names)
+
+                t0 = time.perf_counter()
+                tool_schemas: dict[str, dict[str, str]] = {}
+                for name in server_names:
+                    try:
+                        tools = await pool.list_tools(name)
+                        tool_schemas[name] = {
+                            t["name"]: ", ".join(
+                                f"{p['name']}: {p['type']}{'?' if not p['required'] else ''}"
+                                for p in t.get("parameters", [])
+                            )
+                            for t in tools
+                        }
+                    except Exception:  # noqa: BLE001
+                        tool_schemas[name] = {}
+                timing.prefetch_s = time.perf_counter() - t0
+
+                layers = plan.dependency_layers()
+                for layer in layers:
+                    layer_start = time.perf_counter()
+
+                    async def _timed_step(step, ctx=context, _pool=pool):
+                        schema = tool_schemas.get(step.server, {}).get(step.tool, "")
+                        return await self._execute_step_timed(
+                            step, ctx, question, schema, tool_schemas, pool=_pool
+                        )
+
+                    layer_results = await asyncio.gather(*[_timed_step(step) for step in layer])
+                    timing.layer_wall_times.append(time.perf_counter() - layer_start)
+
+                    for st, result in layer_results:
+                        context[result.step_number] = result
+                        timing.steps.append(st)
+        else:
+            # ── 3b. Sequential baseline (subprocess per call) ─────────────
+            t0 = time.perf_counter()
+            tool_schemas = {}
+            for name in server_names:
+                path = self._server_paths.get(name)
+                if path is None:
+                    continue
+                try:
+                    tools = await self._list_tools(path)
+                    tool_schemas[name] = {
+                        t["name"]: ", ".join(
+                            f"{p['name']}: {p['type']}{'?' if not p['required'] else ''}"
+                            for p in t.get("parameters", [])
+                        )
+                        for t in tools
+                    }
+                except Exception:  # noqa: BLE001
+                    tool_schemas[name] = {}
+            timing.prefetch_s = time.perf_counter() - t0
+
+            for step in ordered:
+                schema = tool_schemas.get(step.server, {}).get(step.tool, "")
+                st, result = await self._execute_step_timed(
+                    step, context, question, schema, tool_schemas, pool=None
                 )
-                st.total_s = time.perf_counter() - step_start
                 context[step.step_number] = result
                 timing.steps.append(st)
-                continue
-
-            try:
-                tool_schema = tool_schemas.get(step.server, {}).get(step.tool, "")
-                t_llm = time.perf_counter()
-                resolved_args = await self._resolve_args_with_llm(
-                    question,
-                    step.task,
-                    step.tool,
-                    tool_schema,
-                    context,
-                    self._llm,
-                )
-                st.llm_resolve_s = time.perf_counter() - t_llm
-
-                t_tool = time.perf_counter()
-                response = await self._call_tool(server_path, step.tool, resolved_args)
-                st.tool_call_s = time.perf_counter() - t_tool
-
-                result = StepResult(
-                    step_number=step.step_number,
-                    task=step.task,
-                    server=step.server,
-                    response=response,
-                    tool=step.tool,
-                    tool_args=resolved_args,
-                )
-            except Exception as exc:  # noqa: BLE001
-                result = StepResult(
-                    step_number=step.step_number,
-                    task=step.task,
-                    server=step.server,
-                    response="",
-                    error=str(exc),
-                    tool=step.tool,
-                    tool_args=step.tool_args,
-                )
-                st.success = False
-
-            st.total_s = time.perf_counter() - step_start
-            context[step.step_number] = result
-            timing.steps.append(st)
 
         # ── 4. Summarization ──────────────────────────────────────────────────
         from agent.plan_execute.runner import _SUMMARIZE_PROMPT
@@ -303,12 +380,14 @@ class ProfiledRunner:
                 )
 
             t0 = time.perf_counter()
-            self._llm.generate(
+            timing.answer = self._llm.generate(
                 _SUMMARIZE_PROMPT.format(question=question, results=results_text)
             )
             timing.summarization_s = time.perf_counter() - t0
         else:
             timing.summarization_s = 0.0
+
+        # ── 5. Asteria insert ─────────────────────────────────────────────────
         if self._asteria_cache is not None:
             from asteria.config import DEFAULT_CONFIG
             from asteria.integrations.assetops.full_asteria_adapter import compose_stored_answer_from_steps
@@ -333,6 +412,63 @@ class ProfiledRunner:
 
         timing.total_s = time.perf_counter() - run_start
         return timing
+
+    # ── internal timed step helper ────────────────────────────────────────────
+
+    async def _execute_step_timed(self, step, context, question, tool_schema, tool_schemas, pool=None):
+        """Execute one step and return (StepTiming, StepResult)."""
+        from agent.plan_execute.models import StepResult
+
+        step_start = time.perf_counter()
+        st = StepTiming(
+            step_number=step.step_number,
+            server=step.server,
+            task=step.task,
+            tool=step.tool or "none",
+        )
+
+        server_path = self._server_paths.get(step.server)
+        if server_path is None or not step.tool or step.tool.lower() in ("none", "null"):
+            result = StepResult(
+                step_number=step.step_number, task=step.task,
+                server=step.server, response=step.expected_output,
+                tool=step.tool, tool_args=step.tool_args,
+            )
+            st.total_s = time.perf_counter() - step_start
+            return st, result
+
+        try:
+            t_llm = time.perf_counter()
+            resolved_args = await self._resolve_args_with_llm(
+                question, step.task, step.tool, tool_schema, context, self._llm
+            )
+            st.llm_resolve_s = time.perf_counter() - t_llm
+            st.tool_args = resolved_args
+
+            t_tool = time.perf_counter()
+            if pool is not None and pool.has_server(step.server):
+                response = await pool.call_tool(step.server, step.tool, resolved_args)
+            else:
+                response = await self._call_tool(server_path, step.tool, resolved_args)
+            st.tool_call_s = time.perf_counter() - t_tool
+            st.response = response
+
+            result = StepResult(
+                step_number=step.step_number, task=step.task,
+                server=step.server, response=response,
+                tool=step.tool, tool_args=resolved_args,
+            )
+        except Exception as exc:  # noqa: BLE001
+            st.success = False
+            st.error = str(exc)
+            result = StepResult(
+                step_number=step.step_number, task=step.task,
+                server=step.server, response="",
+                error=st.error, tool=step.tool, tool_args=step.tool_args,
+            )
+
+        st.total_s = time.perf_counter() - step_start
+        return st, result
 
 
 # ── reporting ─────────────────────────────────────────────────────────────────
@@ -534,7 +670,7 @@ def _build_parser() -> argparse.ArgumentParser:
         help=(
             "Simulated wall clock for the temporal classifier "
             "(ISO 8601, e.g. 2024-08-15T02:01:51).  Drives "
-            "RELATIVE→ANCHORED resolution in a reproducible way."
+            "RELATIVE->ANCHORED resolution in a reproducible way."
         ),
     )
     parser.add_argument(
@@ -584,6 +720,26 @@ def _build_parser() -> argparse.ArgumentParser:
         "--compare-asteria",
         action="store_true",
         help="Run the same query set twice: baseline first, then Asteria.",
+    )
+    parser.add_argument(
+        "--parallel",
+        action="store_true",
+        help="Run with parallel (DAG) executor + MCP connection pool.",
+    )
+    parser.add_argument(
+        "--cache-discovery",
+        action="store_true",
+        help="Enable discovery phase caching (disk-backed, 24h TTL).",
+    )
+    parser.add_argument(
+        "--optimize",
+        action="store_true",
+        help="Run full optimization benchmark: baseline vs all optimizations.",
+    )
+    parser.add_argument(
+        "--clear-cache",
+        action="store_true",
+        help="Delete the discovery cache file and exit.",
     )
     parser.add_argument(
         "--csv",
@@ -653,6 +809,8 @@ def _load_query_cases(args: argparse.Namespace) -> list[QueryCase]:
 
 
 def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    if getattr(args, 'clear_cache', False):
+        return  # no question needed
     if args.question and args.csv is not None:
         parser.error("Pass either a single question or --csv sampling, not both.")
     if not args.question and args.csv is None:
@@ -667,6 +825,8 @@ async def _run_mode(
     *,
     mode_name: str,
     asteria_enabled: bool,
+    parallel: bool = False,
+    cache_discovery: bool = False,
 ) -> None:
     runner = ProfiledRunner(
         model_id=args.model_id,
@@ -692,7 +852,12 @@ async def _run_mode(
         for i in range(1, args.runs + 1):
             if args.runs > 1:
                 print(f"\nRun {i}/{args.runs}...", flush=True)
-            t = await runner.run(query_case.question, now=getattr(args, "_parsed_now", None))
+            t = await runner.run(
+                query_case.question,
+                now=getattr(args, "_parsed_now", None),
+                parallel=parallel,
+                cache_discovery=cache_discovery,
+            )
             t.question_metadata = query_case.metadata
             timings.append(t)
             print_run(t, run_index=i if args.runs > 1 else None)
@@ -701,16 +866,41 @@ async def _run_mode(
 
 
 async def _main(args: argparse.Namespace) -> None:
+    # ── Clear cache and exit ──────────────────────────────────────────
+    if getattr(args, 'clear_cache', False):
+        from agent.plan_execute.executor import DEFAULT_SERVER_PATHS
+        cache = DiscoveryCache(DEFAULT_SERVER_PATHS)
+        cache.clear()
+        return
+
     query_cases = _load_query_cases(args)
-    modes = [("Baseline", False), ("Asteria", True)] if args.compare_asteria else [
-        ("Asteria", True) if args.asteria else ("Baseline", False)
-    ]
-    for mode_name, asteria_enabled in modes:
+    parallel = getattr(args, 'parallel', False)
+    cache_disc = getattr(args, 'cache_discovery', False)
+
+    if getattr(args, 'optimize', False):
+        # Run baseline vs all-optimizations comparison
+        modes = [
+            ("Baseline (sequential)", False, False, False),
+            ("Optimized (parallel+cache+asteria)", True, True, True),
+        ]
+        for mode_name, par, cache, asteria in modes:
+            await _run_mode(
+                args, query_cases,
+                mode_name=mode_name, asteria_enabled=asteria,
+                parallel=par, cache_discovery=cache,
+            )
+        return
+
+    if args.compare_asteria:
+        modes_list = [("Baseline", False), ("Asteria", True)]
+    else:
+        modes_list = [("Asteria", True)] if args.asteria else [("Baseline", False)]
+
+    for mode_name, asteria_enabled in modes_list:
         await _run_mode(
-            args,
-            query_cases,
-            mode_name=mode_name,
-            asteria_enabled=asteria_enabled,
+            args, query_cases,
+            mode_name=mode_name, asteria_enabled=asteria_enabled,
+            parallel=parallel, cache_discovery=cache_disc,
         )
 
 
