@@ -76,6 +76,24 @@ class RunTiming:
         return sum(s.total_s for s in self.steps)
 
 
+# ── LLM shim: strip doubled outer braces from arg-resolution responses ───────
+#
+# Llama-3.3 on Watsonx frequently returns valid JSON wrapped in extra braces,
+# e.g. '{{"site_name": "Main"}}', which the executor's _parse_json rejects and
+# falls back to {} args. Stripping at the LLM layer (outside src/) recovers it.
+
+class _BraceFixingLLM:
+    def __init__(self, inner) -> None:
+        self._inner = inner
+
+    def generate(self, prompt: str, temperature: float = 0.0) -> str:
+        out = self._inner.generate(prompt, temperature)
+        s = out.strip()
+        if s.startswith("{{") and s.endswith("}}"):
+            return s[1:-1]
+        return out
+
+
 # ── instrumented runner ───────────────────────────────────────────────────────
 
 class ProfiledRunner:
@@ -101,7 +119,7 @@ class ProfiledRunner:
         from agent.plan_execute.planner import Planner
 
         self._model_id = model_id
-        self._llm = LiteLLMBackend(model_id=model_id)
+        self._llm = _BraceFixingLLM(LiteLLMBackend(model_id=model_id))
         self._server_paths = server_paths or DEFAULT_SERVER_PATHS
         self._planner = Planner(self._llm)
         self._executor = Executor(self._llm, self._server_paths)

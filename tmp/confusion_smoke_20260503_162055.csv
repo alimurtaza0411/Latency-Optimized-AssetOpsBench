@@ -1,0 +1,11 @@
+id,parent_id,similarity_tier,y_true,y_pred,cell,label_mode
+652,10,paraphrase,1,0,FN,strict
+668,514,paraphrase,0,0,TN,strict
+707,515,paraphrase,0,0,TN,strict
+646,203,paraphrase,1,1,TP,strict
+709,214,paraphrase,0,1,FP,strict
+737,104,paraphrase,0,0,TN,strict
+740,6,paraphrase,0,0,TN,strict
+684,202,paraphrase,0,1,FP,strict
+726,107,paraphrase,0,0,TN,strict
+663,2,paraphrase,1,0,FN,strict

@@ -50,7 +50,10 @@ class TemporalContext:
 
 class SemanticJudger:
 
-    def __init__(self, model_name: str = "Qwen/Qwen3-Reranker-0.6B"):
+    def __init__(self, model_name: str | None = None):
+        if model_name is None:
+            from .config import DEFAULT_CONFIG
+            model_name = DEFAULT_CONFIG.judger_model
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name, padding_side="left"
         )
@@ -59,6 +62,15 @@ class SemanticJudger:
         )
         self.model.eval()
 
+        # Pick the best available device (CUDA > MPS > CPU)
+        if torch.cuda.is_available():
+            self.device = torch.device("cuda")
+        elif torch.backends.mps.is_available():
+            self.device = torch.device("mps")
+        else:
+            self.device = torch.device("cpu")
+        self.model = self.model.to(self.device)
+
         # Official model card: lowercase yes/no tokens
         self.token_yes = self.tokenizer.encode("yes", add_special_tokens=False)[-1]
         self.token_no = self.tokenizer.encode("no", add_special_tokens=False)[-1]
@@ -66,7 +78,7 @@ class SemanticJudger:
         # Empty <think> block forces next-token = yes/no
         self._suffix = "\n<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
 
-        print(f"Loaded judger: {model_name}")
+        print(f"Loaded judger: {model_name}  device={self.device}")
         print(f"  yes token id : {self.token_yes}")
         print(f"  no  token id : {self.token_no}")
 
@@ -90,7 +102,7 @@ class SemanticJudger:
         """Single forward pass → P(yes) via softmax over (no, yes) logits."""
         inputs = self.tokenizer(
             prompt, return_tensors="pt", truncation=True, max_length=512
-        )
+        ).to(self.device)
         with torch.no_grad():
             outputs = self.model(**inputs)
         last_logits = outputs.logits[:, -1, :]
@@ -216,7 +228,7 @@ class SemanticJudger:
         inputs = self.tokenizer(
             prompts, padding=True, return_tensors="pt",
             truncation=True, max_length=512
-        )
+        ).to(self.device)
         with torch.no_grad():
             outputs = self.model(**inputs)
         last_logits = outputs.logits[:, -1, :]
