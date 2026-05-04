@@ -7,9 +7,7 @@ Workflow:
      to staticity gate / temporal-bucket policy).  Use --max-seed-rows only
      for quick smoke runs; omit it to run the full seed CSV.
   2. Test pass: by default **every** row of cache_test.csv (after --test-types
-     filter).  Pass --sample-count N for uniform random subsample, or
-     --sample-warm A --sample-cold B for a stratified smoke split (parents in
-     seed CSV vs not).
+     filter).  Pass --sample-count N to randomly subsample instead.
   3. Baseline pass: run the chosen test rows with Asteria off.
   4. Cached pass: run the same rows with the warmed Asteria runner.
   5. Print side-by-side summary and (by default) an Asteria reliability table:
@@ -26,8 +24,8 @@ Usage (full seed + full test — no subsampling):
       --seed-csv cache_seed.csv \\
       --test-csv cache_test.csv
 
-Optional stratified smoke (A warm + B cold test rows by parent_id vs seed CSV):
-  ... --sample-warm 4 --sample-cold 4 --sample-seed 42
+Optional random subsample of test rows only:
+  ... --sample-count 50 --sample-seed 42
 
 Disable the reliability table with --no-confusion-matrix.
 
@@ -35,15 +33,13 @@ Common options:
   --skip-summary             Skip the LLM summarization step (faster).
   --seed-types IoT,Workorder Restrict seed pass to these types.
   --test-types IoT,Workorder Restrict test CSV to these types.
-  --sample-count N           Uniform random N rows (omit = use all).
-  --sample-warm A            With --sample-cold B: A rows whose parent_id is in seed CSV.
-  --sample-cold B            B rows whose parent_id is not in seed CSV.
-  --sample-seed N            RNG for sampling (default: 42).
+  --sample-count N           Randomly take N test rows (omit = use all).
+  --sample-seed N            RNG for --sample-count (default: 42 if sampling).
   --max-seed-rows N          Cap seed pass for fast smoke runs.
   --confusion-matrix         TP/TN/FP/FN + precision/recall (on by default).
   --no-confusion-matrix      Skip reliability table.
-  --debug                    Per-row [debug:…] block (scenario, temporal, Asteria hints).
-  --verbose                  Full Asteria decision trail (temporal → ANN → judger → decision).
+  --debug                    Per row: scenario ids, temporal bucket/window, Asteria hit/miss.
+  --verbose                  Full Asteria decision trail (use with --debug).
 """
 
 from __future__ import annotations
@@ -53,7 +49,7 @@ import asyncio
 import csv
 import datetime as _dt
 import math
-import random
+import shutil
 import sys
 import time
 from dataclasses import dataclass, field
@@ -319,7 +315,6 @@ def _print_decision_trail(
 
 # ── seed + sample passes ─────────────────────────────────────────────────────
 
-
 async def _runner_run_with_retry(
     runner: ProfiledRunner,
     text: str,
@@ -328,6 +323,8 @@ async def _runner_run_with_retry(
     retries: int,
     delay_s: float,
     row_label: str,
+    parallel: bool = False,
+    cache_discovery: bool = False,
 ):
     """Wrap runner.run() with explicit retry on exception (WatsonX
     rate-limit, transient network).  Logs each retry so latency-distorting
@@ -336,7 +333,11 @@ async def _runner_run_with_retry(
     last_exc: Optional[BaseException] = None
     for attempt in range(retries + 1):
         try:
-            return await runner.run(text, now=now)
+            return await runner.run(
+                text, now=now,
+                parallel=parallel,
+                cache_discovery=cache_discovery,
+            )
         except Exception as exc:  # noqa: BLE001
             last_exc = exc
             if attempt < retries:
@@ -366,6 +367,8 @@ async def _run_seed(
     debug: bool = False,
     retries: int = 2,
     retry_delay_s: float = 5.0,
+    parallel: bool = False,
+    cache_discovery: bool = False,
 ) -> SeedStats:
     stats = SeedStats()
     print(f"\n[{label}] seeding {len(rows)} rows …")
@@ -378,6 +381,7 @@ async def _run_seed(
             runner, text, run_at,
             retries=retries, delay_s=retry_delay_s,
             row_label=f"id={row.get('id','?')}",
+            parallel=parallel, cache_discovery=cache_discovery,
         )
         pid = str(row.get("parent_id") or "").strip()
         if pid:
@@ -409,6 +413,8 @@ async def _run_sample_pass(
     debug: bool = False,
     retries: int = 2,
     retry_delay_s: float = 5.0,
+    parallel: bool = False,
+    cache_discovery: bool = False,
 ) -> PassSummary:
     out = PassSummary(label=label)
     print(f"\n[{label}] running {len(sampled)} sampled rows …")
@@ -421,6 +427,7 @@ async def _run_sample_pass(
             runner, text, run_at,
             retries=retries, delay_s=retry_delay_s,
             row_label=f"id={row.get('id','?')}",
+            parallel=parallel, cache_discovery=cache_discovery,
         )
         sr = SampleResult(
             row_id=row.get("id", "?"),
@@ -458,13 +465,9 @@ async def _run_sample_pass(
 def _stats(values: list[float]) -> str:
     if not values:
         return "n/a"
-    n = len(values)
-    k = int(n * 0.05)
-    trimmed = sorted(values)[k : n - k] if n - 2 * k >= 1 else values
-    trimmed_avg = mean(trimmed)
     return (
-        f"avg={mean(values):.2f}s  trimmed_avg={trimmed_avg:.2f}s  "
-        f"med={median(values):.2f}s  min={min(values):.2f}s  max={max(values):.2f}s"
+        f"avg={mean(values):.2f}s  med={median(values):.2f}s  "
+        f"min={min(values):.2f}s  max={max(values):.2f}s"
     )
 
 
@@ -551,49 +554,6 @@ def _parse_confusion_tiers(arg: str | None) -> set[str]:
     if not arg:
         return {"paraphrase", "shifted_anchored"}
     return {x.strip() for x in arg.split(",") if x.strip()}
-
-
-def _stratified_warm_cold_sample(
-    test_rows: list[dict],
-    seed_rows: list[dict],
-    n_warm: int,
-    n_cold: int,
-    *,
-    rng_seed: int,
-) -> list[dict]:
-    """Pick test rows by whether ``parent_id`` appears in *seed_rows* (CSV-wise warm vs cold)."""
-    seed_parents = {
-        str(r.get("parent_id") or "").strip()
-        for r in seed_rows
-        if str(r.get("parent_id") or "").strip()
-    }
-    warm_pool: list[dict] = []
-    cold_pool: list[dict] = []
-    for r in test_rows:
-        pid = str(r.get("parent_id") or "").strip()
-        if pid in seed_parents:
-            warm_pool.append(r)
-        else:
-            cold_pool.append(r)
-
-    rng = random.Random(rng_seed)
-    out: list[dict] = []
-    if n_warm:
-        if n_warm > len(warm_pool):
-            raise ValueError(
-                f"--sample-warm={n_warm} but only {len(warm_pool)} test rows have "
-                f"parent_id in the seed CSV (after filters / --max-seed-rows)."
-            )
-        out.extend(rng.sample(warm_pool, n_warm))
-    if n_cold:
-        if n_cold > len(cold_pool):
-            raise ValueError(
-                f"--sample-cold={n_cold} but only {len(cold_pool)} cold test rows "
-                f"(parent_id not in seed CSV)."
-            )
-        out.extend(rng.sample(cold_pool, n_cold))
-    rng.shuffle(out)
-    return out
 
 
 def _print_confusion_report(
@@ -754,28 +714,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "--sample-seed",
         type=int,
         default=42,
-        help="RNG for --sample-count or --sample-warm/--sample-cold (default: 42).",
-    )
-    p.add_argument(
-        "--sample-warm",
-        type=int,
-        default=None,
-        metavar="A",
-        help=(
-            "Stratified smoke: take A test rows whose parent_id appears in the seed CSV "
-            "(after filters and --max-seed-rows).  Must be used with --sample-cold; "
-            "incompatible with --sample-count."
-        ),
-    )
-    p.add_argument(
-        "--sample-cold",
-        type=int,
-        default=None,
-        metavar="B",
-        help=(
-            "Stratified smoke: take B test rows whose parent_id is not in the seed CSV. "
-            "Must be used with --sample-warm."
-        ),
+        help="RNG seed when --sample-count is set (ignored for full test run).",
     )
     p.add_argument("--seed-types", default=None,
                    help="Comma-separated types to include from seed CSV.")
@@ -826,7 +765,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--confusion-mode",
         choices=("intent", "strict"),
-        default="strict",
+        default="intent",
         help="How y=true is chosen for reliability (see docstring in script header).",
     )
     p.add_argument(
@@ -844,15 +783,395 @@ def _build_parser() -> argparse.ArgumentParser:
         "--debug",
         action="store_true",
         help=(
-            "Per-row [debug:…] lines: scenario id/parent/tier, query snip, temporal bucket/window, "
-            "Asteria hit/miss and lookup hints, insert outcome. "
-            "For the full cache decision trail as well, pass --verbose."
+            "After each row, print scenario id/parent/tier, temporal bucket/window, "
+            "Asteria hit/miss, ANN/judger hints, and insert outcome. "
+            "Use --verbose for the full decision trail as well."
         ),
+    )
+    p.add_argument(
+        "--parallel", action="store_true",
+        help="Use DAG-based parallel execution + MCP connection pool for all runner passes.",
+    )
+    p.add_argument(
+        "--cache-discovery", action="store_true",
+        help="Enable disk-backed discovery-phase cache (24 h TTL) for all runner passes.",
+    )
+    p.add_argument(
+        "--ablation", action="store_true",
+        help=(
+            "Run full ablation study: baseline (all optimizations OFF) then optimized "
+            "(Parallel + Discovery Cache + Asteria all ON) on the same data. "
+            "Writes a markdown report and PNG plots."
+        ),
+    )
+    p.add_argument(
+        "--report-path", type=Path, default=Path("ablation_report.md"),
+        help="Path for the ablation markdown report (default: ablation_report.md).",
+    )
+    p.add_argument(
+        "--plots-dir", type=Path, default=Path("ablation_plots"),
+        help="Directory for ablation PNG plots (default: ablation_plots/).",
     )
     return p
 
 
+# ── ablation utilities ───────────────────────────────────────────────────────
+
+def _compute_ablation_metrics(baseline: PassSummary, cached: PassSummary) -> dict:
+    metrics = {}
+    metrics['baseline_runs'] = baseline.runs
+    metrics['optimized_runs'] = cached.runs
+    metrics['cache_hits'] = cached.hits
+    metrics['hit_rate'] = (cached.hits / cached.runs) if cached.runs else 0.0
+
+    metrics['baseline_avg'] = mean(baseline.totals) if baseline.totals else 0.0
+    metrics['baseline_med'] = median(baseline.totals) if baseline.totals else 0.0
+    metrics['baseline_min'] = min(baseline.totals) if baseline.totals else 0.0
+    metrics['baseline_max'] = max(baseline.totals) if baseline.totals else 0.0
+
+    metrics['optimized_avg'] = mean(cached.totals) if cached.totals else 0.0
+    metrics['optimized_med'] = median(cached.totals) if cached.totals else 0.0
+    metrics['optimized_min'] = min(cached.totals) if cached.totals else 0.0
+    metrics['optimized_max'] = max(cached.totals) if cached.totals else 0.0
+
+    common_ids = sorted(set(baseline.by_id) & set(cached.by_id))
+    hit_pairs = []
+    miss_deltas = []
+    for rid in common_ids:
+        b = baseline.by_id[rid].total_s
+        c = cached.by_id[rid].total_s
+        if cached.by_id[rid].asteria_hit:
+            if c > 0:
+                hit_pairs.append((b, c))
+        else:
+            miss_deltas.append(c - b)
+
+    metrics['hit_speedups'] = [b/c for b, c in hit_pairs]
+    metrics['hit_savings_frac'] = [(b - c) / b if b > 0 else 0.0 for b, c in hit_pairs]
+    metrics['miss_deltas'] = miss_deltas
+
+    if hit_pairs:
+        metrics['mean_hit_speedup'] = mean(metrics['hit_speedups'])
+        metrics['geom_mean_hit_speedup'] = math.exp(sum(math.log(s) for s in metrics['hit_speedups']) / len(metrics['hit_speedups']))
+        metrics['mean_hit_savings'] = mean(metrics['hit_savings_frac'])
+    else:
+        metrics['mean_hit_speedup'] = 0.0
+        metrics['geom_mean_hit_speedup'] = 0.0
+        metrics['mean_hit_savings'] = 0.0
+
+    if miss_deltas:
+        metrics['mean_miss_delta'] = mean(miss_deltas)
+    else:
+        metrics['mean_miss_delta'] = 0.0
+
+    return metrics
+
+
+def _write_ablation_report(
+    report_path: Path,
+    args: argparse.Namespace,
+    baseline: PassSummary,
+    cached: PassSummary,
+    metrics: dict,
+    seed_stats: SeedStats,
+    sampled: list[dict],
+) -> None:
+    mode = args.confusion_mode
+    tiers = _parse_confusion_tiers(args.confusion_tiers)
+    
+    positives = (
+        seed_stats.parents_executed
+        if mode == "intent"
+        else seed_stats.parents_warmed
+    )
+    tp = fp = tn = fn = 0
+    for row in sampled:
+        tier = (row.get("similarity_tier") or "").strip()
+        if tiers and tier not in tiers:
+            continue
+        rid = row.get("id", "")
+        if not rid or rid not in cached.by_id:
+            continue
+        pid = str(row.get("parent_id") or "").strip()
+        y_pred = 1 if cached.by_id[rid].asteria_hit else 0
+        y_true = 1 if pid in positives else 0
+        if y_true == 1 and y_pred == 1:
+            tp += 1
+        elif y_true == 1 and y_pred == 0:
+            fn += 1
+        elif y_true == 0 and y_pred == 1:
+            fp += 1
+        else:
+            tn += 1
+
+    den_p = tp + fp
+    den_r = tp + fn
+    prec = tp / den_p if den_p else float("nan")
+    rec = tp / den_r if den_r else float("nan")
+    f1 = 2 * prec * rec / (prec + rec) if not math.isnan(prec) and not math.isnan(rec) and (prec + rec) > 0 else float("nan")
+    den_s = tn + fp
+    spec = tn / den_s if den_s else float("nan")
+
+    lines = [
+        "# Asteria Ablation Study Report",
+        "",
+        "## Run Configuration",
+        "| Parameter | Value |",
+        "|---|---|",
+        f"| Sample count | {args.sample_count or 'All'} |",
+        f"| Sample seed | {args.sample_seed} |",
+        f"| Max seed rows | {args.max_seed_rows or 'All'} |",
+        f"| Model | {args.model_id} |",
+        f"| Skip summary | {args.skip_summary} |",
+        "",
+        "## Latency Summary",
+        "| Metric | Baseline (all OFF) | Optimized (all ON) |",
+        "|---|---|---|",
+        f"| Runs | {metrics['baseline_runs']} | {metrics['optimized_runs']} |",
+        f"| Avg | {metrics['baseline_avg']:.2f}s | {metrics['optimized_avg']:.2f}s |",
+        f"| Median | {metrics['baseline_med']:.2f}s | {metrics['optimized_med']:.2f}s |",
+        f"| Min | {metrics['baseline_min']:.2f}s | {metrics['optimized_min']:.2f}s |",
+        f"| Max | {metrics['baseline_max']:.2f}s | {metrics['optimized_max']:.2f}s |",
+        "",
+        "## Aggregated Improvement",
+        "| Metric | Value |",
+        "|---|---|",
+        f"| Cache Hits | {metrics['cache_hits']} / {metrics['optimized_runs']} ({metrics['hit_rate']*100:.1f}%) |",
+        f"| Mean Speedup (Hit Rows) | {metrics['mean_hit_speedup']:.2f}x |",
+        f"| Geom-Mean Speedup | {metrics['geom_mean_hit_speedup']:.2f}x |",
+        f"| Mean Latency Reduction | {metrics['mean_hit_savings']*100:.1f}% |",
+        f"| Mean Miss Overhead | {metrics['mean_miss_delta']:+.2f}s |",
+        "",
+        "## Reliability",
+        "| TP | FP | FN | TN | Precision | Recall | F1 | Specificity |",
+        "|---|---|---|---|---|---|---|---|",
+        f"| {tp} | {fp} | {fn} | {tn} | {prec:.4f} | {rec:.4f} | {f1:.4f} | {spec:.4f} |",
+        "",
+        "## Per-Row Results",
+        "| ID | Tier | Baseline (s) | Optimized (s) | Hit |",
+        "|---|---|---|---|---|",
+    ]
+    common = sorted(set(baseline.by_id) & set(cached.by_id))
+    for rid in common:
+        b = baseline.by_id[rid]
+        c = cached.by_id[rid]
+        hit = "YES" if c.asteria_hit else "no"
+        lines.append(f"| {rid} | {b.similarity} | {b.total_s:.2f} | {c.total_s:.2f} | {hit} |")
+
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text("\n".join(lines), encoding="utf-8")
+    print(f"\n  Wrote ablation report → {report_path}")
+
+
+def _generate_ablation_plots(
+    plots_dir: Path,
+    baseline: PassSummary,
+    cached: PassSummary,
+    metrics: dict,
+) -> None:
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("\n  [warn] matplotlib not found; skipping plots.")
+        return
+
+    plots_dir.mkdir(parents=True, exist_ok=True)
+
+    # 1. Latency Comparison
+    plt.figure(figsize=(8, 5))
+    labels = ['Average', 'Median']
+    b_vals = [metrics['baseline_avg'], metrics['baseline_med']]
+    o_vals = [metrics['optimized_avg'], metrics['optimized_med']]
+    x = list(range(len(labels)))
+    width = 0.35
+    plt.bar([i - width/2 for i in x], b_vals, width, label='Baseline (all OFF)', color='lightcoral')
+    plt.bar([i + width/2 for i in x], o_vals, width, label='Optimized (all ON)', color='mediumseagreen')
+    plt.ylabel('Latency (s)')
+    plt.title('Latency Comparison')
+    plt.xticks(x, labels)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(plots_dir / 'latency_comparison.png')
+    plt.close()
+
+    # 2. Per-Row Latency
+    common_ids = sorted(set(baseline.by_id) & set(cached.by_id))
+    if common_ids:
+        plt.figure(figsize=(8, 6))
+        b_hits = []
+        o_hits = []
+        b_misses = []
+        o_misses = []
+        for rid in common_ids:
+            b = baseline.by_id[rid].total_s
+            o = cached.by_id[rid].total_s
+            if cached.by_id[rid].asteria_hit:
+                b_hits.append(b)
+                o_hits.append(o)
+            else:
+                b_misses.append(b)
+                o_misses.append(o)
+
+        max_val = max([baseline.by_id[rid].total_s for rid in common_ids] + [cached.by_id[rid].total_s for rid in common_ids] + [0.1]) * 1.1
+
+        plt.scatter(b_misses, o_misses, color='red', alpha=0.6, label='Miss')
+        plt.scatter(b_hits, o_hits, color='green', alpha=0.6, label='Hit')
+        plt.plot([0, max_val], [0, max_val], 'k--', alpha=0.3, label='y=x (No change)')
+        plt.xlim(0, max_val)
+        plt.ylim(0, max_val)
+        plt.xlabel('Baseline Latency (s)')
+        plt.ylabel('Optimized Latency (s)')
+        plt.title('Per-Row Latency Scatter')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'per_row_latency.png')
+        plt.close()
+
+    # 3. Speedup Distribution
+    if metrics['hit_speedups']:
+        plt.figure(figsize=(8, 5))
+        plt.hist(metrics['hit_speedups'], bins=10, color='mediumseagreen', edgecolor='black')
+        plt.axvline(metrics['mean_hit_speedup'], color='red', linestyle='dashed', linewidth=1, label=f"Mean: {metrics['mean_hit_speedup']:.2f}x")
+        plt.xlabel('Speedup (x)')
+        plt.ylabel('Count')
+        plt.title('Speedup Distribution (Hits Only)')
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'speedup_distribution.png')
+        plt.close()
+
+    # 4. Hit Rate
+    plt.figure(figsize=(6, 6))
+    hits = metrics['cache_hits']
+    misses = metrics['optimized_runs'] - hits
+    if hits + misses > 0:
+        plt.pie([hits, misses], labels=['Hits', 'Misses'], autopct='%1.1f%%', colors=['mediumseagreen', 'lightcoral'], startangle=90)
+        plt.title('Cache Hit Rate')
+        plt.tight_layout()
+        plt.savefig(plots_dir / 'hit_rate.png')
+    plt.close()
+
+    print(f"  Wrote 4 plots → {plots_dir}/")
+
+
+async def _run_ablation_study(args: argparse.Namespace, seed_rows: list[dict], sampled: list[dict]) -> None:
+    print("\n" + "=" * 70)
+    print("  Starting Ablation Study")
+    print("  Baseline: Sequential, No Discovery Cache, No Asteria")
+    print("  Optimized: Parallel, Discovery Cache, Asteria (warmed)")
+    print("=" * 70)
+
+    # 1. Baseline Run
+    baseline_abl_runner = ProfiledRunner(
+        model_id=args.model_id,
+        summarize=not args.skip_summary,
+        summary_max_chars=args.summary_max_chars,
+        step_response_max_chars=args.step_response_max_chars,
+        asteria_enabled=False,
+    )
+    abl_baseline_summary = await _run_sample_pass(
+        baseline_abl_runner, sampled,
+        label="ablation-baseline (ALL OFF)",
+        verbose=args.verbose,
+        debug=args.debug,
+        retries=args.llm_retries,
+        retry_delay_s=args.retry_delay_s,
+        parallel=False,
+        cache_discovery=False,
+    )
+
+    # 2. Seed Pass
+    opt_runner = ProfiledRunner(
+        model_id=args.model_id,
+        summarize=not args.skip_summary,
+        summary_max_chars=args.summary_max_chars,
+        step_response_max_chars=args.step_response_max_chars,
+        asteria_enabled=True,
+    )
+    seed_stats = await _run_seed(
+        opt_runner, seed_rows,
+        label="ablation-seed (WARM CACHE)",
+        verbose=args.verbose,
+        debug=args.debug,
+        retries=args.llm_retries,
+        retry_delay_s=args.retry_delay_s,
+        parallel=True,
+        cache_discovery=True,
+    )
+
+    # 3. Optimized Run
+    abl_opt_summary = await _run_sample_pass(
+        opt_runner, sampled,
+        label="ablation-optimized (ALL ON)",
+        verbose=args.verbose,
+        debug=args.debug,
+        retries=args.llm_retries,
+        retry_delay_s=args.retry_delay_s,
+        parallel=True,
+        cache_discovery=True,
+    )
+
+    # 4. Report & Plots
+    metrics = _compute_ablation_metrics(abl_baseline_summary, abl_opt_summary)
+    
+    _print_compare(abl_baseline_summary, abl_opt_summary)
+    
+    if args.confusion_matrix:
+        _print_confusion_report(
+            seed_stats=seed_stats,
+            sampled=sampled,
+            cached_summary=abl_opt_summary,
+            mode=args.confusion_mode,
+            tiers=_parse_confusion_tiers(args.confusion_tiers),
+            confusion_csv=args.confusion_csv,
+        )
+
+    _write_ablation_report(
+        report_path=args.report_path,
+        args=args,
+        baseline=abl_baseline_summary,
+        cached=abl_opt_summary,
+        metrics=metrics,
+        seed_stats=seed_stats,
+        sampled=sampled,
+    )
+
+    _generate_ablation_plots(
+        plots_dir=args.plots_dir,
+        baseline=abl_baseline_summary,
+        cached=abl_opt_summary,
+        metrics=metrics,
+    )
+
+
+def _clear_environment_caches() -> None:
+    """Clear discovery cache and compiled Python files to ensure a clean run."""
+    print("\n[cleanup] Clearing unnecessary cache files...")
+    
+    # 1. Clear discovery cache
+    discovery_cache = Path(".discovery_cache.json")
+    if discovery_cache.exists():
+        discovery_cache.unlink()
+        print(f"  Deleted {discovery_cache}")
+        
+    # 2. Clear __pycache__ directories
+    count = 0
+    for p in Path(".").rglob("__pycache__"):
+        if p.is_dir():
+            shutil.rmtree(p)
+            count += 1
+    if count > 0:
+        print(f"  Deleted {count} __pycache__ directories")
+            
+    # 3. Clear pytest cache
+    pytest_cache = Path(".pytest_cache")
+    if pytest_cache.is_dir():
+        shutil.rmtree(pytest_cache)
+        print(f"  Deleted {pytest_cache}")
+
+
 async def _main(args: argparse.Namespace) -> None:
+    _clear_environment_caches()
     seed_rows = _filter_by_types(_load_rows(args.seed_csv), args.seed_types)
     test_rows = _filter_by_types(_load_rows(args.test_csv), args.test_types)
 
@@ -867,33 +1186,7 @@ async def _main(args: argparse.Namespace) -> None:
     if args.sample_count is not None and args.sample_count < 1:
         sys.exit("--sample-count must be >= 1 when provided.")
 
-    strat_w, strat_c = args.sample_warm, args.sample_cold
-    if (strat_w is not None) ^ (strat_c is not None):
-        sys.exit("Pass both --sample-warm and --sample-cold, or neither.")
-    if args.sample_count is not None and strat_w is not None:
-        sys.exit("Use either --sample-count or --sample-warm/--sample-cold, not both.")
-
-    if strat_w is not None:
-        assert strat_c is not None
-        if strat_w < 0 or strat_c < 0:
-            sys.exit("--sample-warm and --sample-cold must be >= 0.")
-        if strat_w + strat_c < 1:
-            sys.exit("Stratified test sample must include at least one row.")
-        try:
-            sampled = _stratified_warm_cold_sample(
-                test_rows,
-                seed_rows,
-                strat_w,
-                strat_c,
-                rng_seed=args.sample_seed,
-            )
-        except ValueError as exc:
-            sys.exit(str(exc))
-        print(
-            f"Test selection    : stratified warm={strat_w} cold={strat_c} "
-            f"(seed={args.sample_seed})"
-        )
-    elif args.sample_count is None:
+    if args.sample_count is None:
         sampled = list(test_rows)
         print(f"Test selection    : all rows ({len(sampled)}), no subsample")
     else:
@@ -907,9 +1200,17 @@ async def _main(args: argparse.Namespace) -> None:
     print(f"Seed rows         : {len(seed_rows)}")
     print(f"Test rows total   : {len(test_rows)}")
     print(f"Test rows to run  : {len(sampled)}")
+
+    if args.ablation:
+        await _run_ablation_study(args, seed_rows, sampled)
+        return
+
     print(
         "\n[independence] New ProfiledRunner instances — Asteria cache starts empty."
     )
+
+    parallel = getattr(args, "parallel", False)
+    cache_discovery = getattr(args, "cache_discovery", False)
 
     # Two runners — one for cached path (warmed), one for baseline.
     cached_runner = ProfiledRunner(
