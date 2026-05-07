@@ -54,14 +54,14 @@ Even on cache misses, the standard Plan-Execute pipeline is slow because it disc
    uv sync
    source .venv/bin/activate
    ```
-2. Configure credentials in `.env` (refer to `.env.example`).
-3. Bring up the CouchDB backend and seed asset data:
+2. Configure your Watson API key and other credentials in `.env` before running anything to get the outputs (refer to `.env.public`).
+3. Bring up the CouchDB backend (this will automatically load a subset of the asset data):
    ```bash
    cd src/couchdb
    docker compose up -d
    cd ../..
-   PYTHONPATH=src uv run python src/couchdb/init_asset_data.py
    ```
+   > **Note**: The full `main.json` dataset used for our benchmark results is not provided publicly. However, bringing up the Docker container automatically loads a subset of the data. Queries will run absolutely fine, but the scope of data is restricted to a smaller number of sites and chillers. You do not need to run `init_asset_data.py`.
 
 ## Running the Code
 
@@ -92,6 +92,8 @@ PYTHONPATH=src:. uv run python bench_cache.py \
 ```
 
 ## Key Results
+- **Temporal Semantic Cache**: In a 50-row temporal-cache benchmark, cache hits achieve a median **30.6x** speedup. 
+- **MCP Workflow Optimizations**: Across 20 benchmark queries with 3 runs per query, MCP workflow optimizations reduce the median end-to-end latency from 37.30s to 23.02s, yielding a **1.33x** speedup and a **38.3%** latency reduction.
+- **Discovery Cost**: Discovery caching reduces tool discovery overhead from 2.34s to 0.0076s (**296× faster**).
 - **Overall Speedup**: The combined optimizations reduce median end-to-end latency by **3.48×** (34.10s → 9.80s).
-- **Discovery Cost**: Discovery caching reduces tool discovery overhead from 2.34s to 0.008s (**296× faster**).
 - **Additive Gains**: Because MCP workflow optimizations apply independently of the cache state, the system is faster than the baseline even on cache misses.
