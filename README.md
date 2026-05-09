@@ -1,6 +1,6 @@
 # AssetOpsBench: Temporal Semantic Caching and Workflow Optimization
 
-This repository extends **AssetOpsBench (AOB)**, an industrial agent benchmark, by optimizing its latency-sensitive Plan-Execute pipelines. We introduce two complementary optimization layers that dramatically reduce the overhead of multi-hop orchestration across specialized Model Context Protocol (MCP) servers (IoT, FMSR, TSFM, Work Order).
+This repository extends **AssetOpsBench (AOB)**, an industrial agent benchmark, by optimizing its latency-sensitive Plan-Execute pipelines. We introduce two complementary optimization layers that dramatically reduce the overhead of multi-hop orchestration across specialized Model Context Protocol (MCP) servers.
 
 ## Architecture & Optimizations
 
@@ -16,29 +16,46 @@ Our implementation uses a dual-stage retrieval pipeline: an Approximate Nearest 
 ### 2. MCP Workflow Optimizations
 Even on cache misses, the standard Plan-Execute pipeline is slow because it discovers tools and executes plan steps sequentially. We optimized the MCP orchestration layer with:
 
-- **Discovery-Phase Caching**: Tool catalogs from the 4 domain servers are cached to a local `.discovery_cache.json` file. This eliminates the need to spawn subprocesses per query just to fetch tool signatures.
+- **Discovery-Phase Caching**: Tool catalogs from the domain servers are cached to a local `.discovery_cache.json` file. This eliminates the need to spawn subprocesses per query just to fetch tool signatures.
 - **Parallel Step Execution**: The planner's output is treated as a directed acyclic graph (DAG). Steps are grouped into topological layers and executed concurrently using `asyncio.gather()`.
 - **Persistent Server Pool**: An `MCPServerPool` maintains persistent standard I/O connections to the domain servers across the lifetime of a plan, serializing concurrent tool calls without repeatedly paying subprocess spawn costs.
-
 
 ## Repository Structure
 
 ```
 .
 ├── ASTERIA_CACHE.md         # Deep-dive documentation on the caching internals
+├── pyproject.toml           # Project & dependency configuration
+├── uv.lock                  # Pinned dependencies (managed by uv)
 ├── bench_cache.py           # Ablation study benchmarking script
 ├── timer.py                 # Single-query execution and profiling script
 ├── generate_scenarios.py    # Synthetic dataset generator for cache scenarios
-├── requirements.txt         # Dependencies
-├── asteria/                 # Core caching engine
+├── asteria/                 # Core temporal semantic caching engine
+│   ├── cache.py             # Main cache orchestrator
 │   ├── temporal_classifier.py
 │   ├── semantic_judger.py
 │   ├── sine_index.py
-│   └── cache.py
+│   ├── embedding_model.py
+│   ├── recalibrator.py
+│   ├── semantic_element.py
+│   ├── config.py
+│   ├── workload.py
+│   └── integrations/assetops/  # AssetOpsBench adapter
 └── src/
     ├── agent/plan_execute/  # DAG parallel executor and persistent server pool
+    │   ├── executor_parallel.py
+    │   ├── server_pool.py
+    │   ├── planner.py
+    │   └── runner.py
     ├── couchdb/             # Dockerized CouchDB backend for simulated assets
-    └── servers/             # MCP domain servers (IoT, FMSR, TSFM, WO)
+    ├── llm/                 # LiteLLM / WatsonX API wrapper
+    └── servers/             # MCP domain servers
+        ├── iot/
+        ├── fmsr/
+        ├── tsfm/
+        ├── wo/
+        ├── vibration/
+        └── utilities/
 ```
 
 ## Setup & Reproducibility
@@ -54,7 +71,7 @@ Even on cache misses, the standard Plan-Execute pipeline is slow because it disc
    uv sync
    source .venv/bin/activate
    ```
-2. Configure credentials in `.env` (refer to `.env.example`).
+2. Configure credentials in `.env` (refer to `.env.public` for required variables).
 3. Bring up the CouchDB backend and seed asset data:
    ```bash
    cd src/couchdb
@@ -62,6 +79,8 @@ Even on cache misses, the standard Plan-Execute pipeline is slow because it disc
    cd ../..
    PYTHONPATH=src uv run python src/couchdb/init_asset_data.py
    ```
+
+> **Note:** A valid WatsonX API key must be configured in `.env`. The full `main.json` dataset is not included in the public repository; the CouchDB setup automatically loads a representative subset.
 
 ## Running the Code
 
@@ -72,10 +91,10 @@ PYTHONPATH=src:. uv run python timer.py --asteria --skip-summary "What happened 
 ```
 
 ### Full Ablation Benchmark
-Generate the datasets and run the full three-phase ablation workflow (Phase 1: Warm, Phase 2A: Baseline, Phase 2B: Cached):
+Reproduce the full three-phase ablation workflow (Phase 1: Warm cache, Phase 2A: Baseline, Phase 2B: Cached):
 
 ```bash
-# 1. Generate test data
+# 1. Generate seed and test datasets
 PYTHONPATH=. uv run python generate_scenarios.py --output cache_seed.csv --max-rows 25 --paraphrases-per-row 2 --anchored-shifts-per-row 1 --seed 42
 PYTHONPATH=. uv run python generate_scenarios.py --output cache_test.csv --max-rows 50 --paraphrases-per-row 2 --anchored-shifts-per-row 1 --seed 99
 
@@ -92,6 +111,7 @@ PYTHONPATH=src:. uv run python bench_cache.py \
 ```
 
 ## Key Results
-- **Overall Speedup**: The combined optimizations reduce median end-to-end latency by **3.48×** (34.10s → 9.80s).
-- **Discovery Cost**: Discovery caching reduces tool discovery overhead from 2.34s to 0.008s (**296× faster**).
-- **Additive Gains**: Because MCP workflow optimizations apply independently of the cache state, the system is faster than the baseline even on cache misses.
+- **MCP Workflow Speedup**: Combined workflow optimizations reduce median end-to-end latency by **1.67×** (56.90s → 23.02s), a 40.0% reduction, across 20 benchmark queries with 3 runs each.
+- **Cache Hit Speedup**: Temporal-cache hits achieve a median **30.6× speedup** over the baseline (45.0% hit rate over 80 test queries).
+- **Discovery Cost**: Discovery caching reduces tool-catalog fetch time from 2.34s to 0.008s (**296× faster**).
+- **Additive Gains**: MCP workflow optimizations apply independently of cache state — the system is faster than the baseline even on cache misses.
