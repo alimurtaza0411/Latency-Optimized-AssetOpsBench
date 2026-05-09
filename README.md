@@ -77,7 +77,6 @@ Even on cache misses, the standard Plan-Execute pipeline is slow because it disc
    cd src/couchdb
    docker compose up -d
    cd ../..
-   PYTHONPATH=src uv run python src/couchdb/init_asset_data.py
    ```
 
 > **Note:** A valid WatsonX API key must be configured in `.env`. The full `main.json` dataset is not included in the public repository; the CouchDB setup automatically loads a representative subset.
